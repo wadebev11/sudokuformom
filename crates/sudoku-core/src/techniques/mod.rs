@@ -55,6 +55,24 @@ pub enum Technique {
 }
 
 impl Technique {
+    /// From simplest to hardest, the order Hints try them in.
+    pub const ALL: [Technique; 14] = [
+        Technique::HiddenSingle,
+        Technique::NakedSingle,
+        Technique::Pointing,
+        Technique::BoxLineReduction,
+        Technique::NakedPair,
+        Technique::HiddenPair,
+        Technique::NakedTriple,
+        Technique::HiddenTriple,
+        Technique::XWing,
+        Technique::NakedQuad,
+        Technique::HiddenQuad,
+        Technique::XYWing,
+        Technique::XYZWing,
+        Technique::Swordfish,
+    ];
+
     pub fn difficulty(self) -> Difficulty {
         match self {
             Technique::HiddenSingle | Technique::NakedSingle => Difficulty::Easy,
@@ -87,6 +105,54 @@ impl Technique {
             Technique::XYWing => "XY-Wing",
             Technique::XYZWing => "XYZ-Wing",
             Technique::Swordfish => "Swordfish",
+        }
+    }
+
+    /// How the Technique works, in plain words for the player.
+    pub fn description(self) -> &'static str {
+        match self {
+            Technique::HiddenSingle => {
+                "Pick a number and a row, column or box. If every cell but one is ruled out for that number, it must go in that one cell."
+            }
+            Technique::NakedSingle => {
+                "Look at one empty cell. If its row, column and box already hold eight different numbers, the ninth is the only one that fits."
+            }
+            Technique::Pointing => {
+                "Inside a box, if a number can only go in cells that share one row, the box's copy of that number must be in that row. So the number can't go anywhere else in that row. The same works for a column."
+            }
+            Technique::BoxLineReduction => {
+                "The reverse of Pointing. Inside a row, if a number can only go in cells that all sit in one box, the row's copy of that number must be in that box. So the number can't go anywhere else in that box. The same works for a column."
+            }
+            Technique::NakedPair => {
+                "Two cells in the same row, column or box can each only be the same two numbers. Those two numbers will fill those two cells, so you can cross them out of every other cell in that row, column or box."
+            }
+            Technique::HiddenPair => {
+                "In a row, column or box, two numbers can only go in the same two cells. Those cells must hold those two numbers, so you can cross every other number out of them."
+            }
+            Technique::NakedTriple => {
+                "Like a Naked pair with three cells. Three cells in one row, column or box can only be the same three numbers between them, so those numbers can't go anywhere else there."
+            }
+            Technique::HiddenTriple => {
+                "Like a Hidden pair with three numbers. In one row, column or box, three numbers can only go in the same three cells, so those cells can't hold anything else."
+            }
+            Technique::XWing => {
+                "In two rows, a number can only go in two cells each, and those cells line up in the same two columns, making the corners of a rectangle. Whichever way it goes, the number takes one corner in each of those columns. So you can cross it out of the rest of both columns. It also works with rows and columns swapped."
+            }
+            Technique::NakedQuad => {
+                "Like a Naked pair with four cells. Four cells in one row, column or box can only be the same four numbers between them, so those numbers can't go anywhere else there."
+            }
+            Technique::HiddenQuad => {
+                "Like a Hidden pair with four numbers. In one row, column or box, four numbers can only go in the same four cells, so those cells can't hold anything else."
+            }
+            Technique::XYWing => {
+                "Three cells, each with only two options. The middle cell (say it's 1 or 2) sees the other two, which are 1 or 3 and 2 or 3. Whichever number the middle cell turns out to be, one of the other two must be 3. So any cell that sees both of them can't be 3."
+            }
+            Technique::XYZWing => {
+                "Like an XY-Wing, but the middle cell has three options (say 1, 2 or 3) and the other two cells are 1 or 3 and 2 or 3. One of the three cells must be 3, so any cell that sees all three can't be 3."
+            }
+            Technique::Swordfish => {
+                "An X-Wing with three rows and three columns. In three rows, a number can only go in cells that sit in the same three columns. The number must take one cell in each of those columns, so you can cross it out of the rest of those columns."
+            }
         }
     }
 }

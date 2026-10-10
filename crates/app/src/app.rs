@@ -3,7 +3,7 @@ use std::time::Duration;
 use leptos::prelude::*;
 use sudoku_core::hint::Hint;
 use sudoku_core::stats::Stats;
-use sudoku_core::{Cell, Difficulty, Game, PlayedPuzzles, PuzzleBank};
+use sudoku_core::{Cell, Difficulty, Game, PlayedPuzzles, PuzzleBank, Technique};
 
 use crate::board::Board;
 use crate::celebration::Celebration;
@@ -15,6 +15,7 @@ use crate::scenery::Scenery;
 use crate::settings::{Settings, SettingsMenu};
 use crate::stats_menu::StatsMenu;
 use crate::storage::{self, ELAPSED_KEY, GAME_KEY, PLAYED_KEY, SETTINGS_KEY, STATS_KEY};
+use crate::technique_guide::TechniqueGuide;
 
 static PUZZLE_BANK: PuzzleBank = PuzzleBank::new(include_bytes!("../puzzles.bin"));
 
@@ -35,6 +36,7 @@ enum Dialog {
     NewGame,
     Settings,
     Stats,
+    Techniques(Technique),
 }
 
 #[component]
@@ -127,7 +129,12 @@ pub fn App() -> impl IntoView {
                     dialog.get() == Dialog::None && !celebration_open.get()
                 })
             />
-            <HintPanel hint />
+            <HintPanel
+                hint
+                on_learn_more=Callback::new(move |technique| {
+                    dialog.set(Dialog::Techniques(technique))
+                })
+            />
             <Show when=move || celebration_open.get()>
                 <Celebration
                     game
@@ -152,6 +159,12 @@ pub fn App() -> impl IntoView {
             <Show when=move || dialog.get() == Dialog::Stats>
                 <StatsMenu stats on_close=close_dialog />
             </Show>
+            {move || match dialog.get() {
+                Dialog::Techniques(current) => {
+                    Some(view! { <TechniqueGuide current on_close=close_dialog /> })
+                }
+                _ => None,
+            }}
         </main>
     }
 }

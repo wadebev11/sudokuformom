@@ -1,6 +1,6 @@
 use crate::game::Game;
 use crate::grid::{CELL_COUNT, Cell, cell_name, digit_bit};
-use crate::techniques::{LogicBoard, Step};
+use crate::techniques::{LogicBoard, Step, Technique};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Hint {
@@ -34,6 +34,13 @@ impl Hint {
         match self {
             Hint::Mistake(_) => "Mistake",
             Hint::Step(step) => step.technique.name(),
+        }
+    }
+
+    pub fn technique(&self) -> Option<Technique> {
+        match self {
+            Hint::Mistake(_) => None,
+            Hint::Step(step) => Some(step.technique),
         }
     }
 

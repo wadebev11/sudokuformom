@@ -553,3 +553,51 @@ header button.link {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.hint-panel button.link {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.95rem;
+  padding: 6px 0 0;
+  text-decoration: underline;
+}
+
+.technique-guide {
+  max-height: calc(100dvh - 32px);
+  width: min(100%, 480px);
+}
+
+.technique-list {
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+.technique-list h3 {
+  margin: 16px 0 4px;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.technique-list h3:first-child {
+  margin-top: 0;
+}
+
+.technique {
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.technique.current {
+  background: var(--hint-target);
+  border-left: 4px solid var(--hint);
+}
+
+.technique h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.technique p {
+  margin: 4px 0 0;
+}

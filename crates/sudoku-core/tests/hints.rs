@@ -73,3 +73,11 @@ fn applying_an_elimination_hint_fills_in_pencil_marks_without_the_eliminated_can
     }
     assert_ne!(game.hint(), Some(elimination_hint));
 }
+
+#[test]
+fn a_step_names_its_technique_but_a_mistake_does_not() {
+    let mut game = Game::new(grid(EASY_PUZZLE), Difficulty::Easy);
+    assert!(game.hint().unwrap().technique().is_some());
+    game.enter(2, 1);
+    assert_eq!(game.hint().unwrap().technique(), None);
+}
