@@ -11,6 +11,7 @@ const CONFETTI_COLORS: [&str; 6] = [
 #[component]
 pub fn Celebration(
     game: RwSignal<Game>,
+    elapsed_seconds: RwSignal<u64>,
     stats: RwSignal<Stats>,
     on_new_game: Callback<()>,
     on_close: Callback<()>,
@@ -38,7 +39,7 @@ pub fn Celebration(
             <div class="dialog" role="dialog" aria-label="Puzzle solved">
                 <h2 role="status">"Solved!"</h2>
                 <p class="celebration-time">
-                    {move || format!("{} puzzle in {}", game.with(Game::difficulty).name(), clock(game.with(Game::elapsed_seconds)))}
+                    {move || format!("{} puzzle in {}", game.with(Game::difficulty).name(), clock(elapsed_seconds.get()))}
                 </p>
                 <p class="celebration-best">{move || best().map(|seconds| format!("Best time: {}", clock(seconds)))}</p>
                 <button class="primary" on:click=move |_| on_new_game.run(())>"New game"</button>

@@ -14,7 +14,7 @@ use crate::new_game_menu::NewGameMenu;
 use crate::number_pad::NumberPad;
 use crate::settings::{Settings, SettingsMenu};
 use crate::stats_menu::StatsMenu;
-use crate::storage::{self, GAME_KEY, PLAYED_KEY, SETTINGS_KEY, STATS_KEY};
+use crate::storage::{self, ELAPSED_KEY, GAME_KEY, PLAYED_KEY, SETTINGS_KEY, STATS_KEY};
 
 static PUZZLE_BANK: LazyLock<PuzzleBank> = LazyLock::new(|| {
     serde_json::from_str(include_str!("../puzzles.json"))
@@ -48,6 +48,8 @@ pub fn App() -> impl IntoView {
         saved_game.unwrap_or_else(|| new_game(Difficulty::Easy, &mut played_puzzles)),
     );
     let played = RwSignal::new(played_puzzles);
+    // Kept apart from the game so the clock ticking each second doesn't redraw the board.
+    let elapsed_seconds = RwSignal::new(storage::load::<u64>(ELAPSED_KEY).unwrap_or_default());
     let settings = RwSignal::new(storage::load::<Settings>(SETTINGS_KEY).unwrap_or_default());
     let stats = RwSignal::new(storage::load::<Stats>(STATS_KEY).unwrap_or_default());
     let selected = RwSignal::new(None::<Cell>);
@@ -56,6 +58,7 @@ pub fn App() -> impl IntoView {
     let celebration_closed = RwSignal::new(false);
 
     Effect::new(move || game.with(|game| storage::save(GAME_KEY, game)));
+    Effect::new(move || storage::save(ELAPSED_KEY, &elapsed_seconds.get()));
     Effect::new(move || played.with(|played| storage::save(PLAYED_KEY, played)));
     Effect::new(move || settings.with(|settings| storage::save(SETTINGS_KEY, settings)));
     Effect::new(move || stats.with(|stats| storage::save(STATS_KEY, stats)));
@@ -64,8 +67,8 @@ pub fn App() -> impl IntoView {
     Effect::new(move |was_solved: Option<bool>| {
         let solved = game.with(Game::is_solved);
         if solved && was_solved == Some(false) {
-            let (difficulty, seconds) =
-                game.with(|game| (game.difficulty(), game.elapsed_seconds()));
+            let difficulty = game.with_untracked(Game::difficulty);
+            let seconds = elapsed_seconds.get_untracked();
             stats.update(|stats| stats.record_solve(difficulty, seconds));
         }
         solved
@@ -74,7 +77,7 @@ pub fn App() -> impl IntoView {
     set_interval(
         move || {
             if app_is_on_screen() && !game.with_untracked(Game::is_solved) {
-                game.update(Game::tick);
+                *elapsed_seconds.write() += 1;
             }
         },
         Duration::from_secs(1),
@@ -82,6 +85,7 @@ pub fn App() -> impl IntoView {
 
     let start_new_game = Callback::new(move |difficulty| {
         played.update(|played| game.set(new_game(difficulty, played)));
+        elapsed_seconds.set(0);
         selected.set(None);
         hint.set(None);
         celebration_closed.set(false);
@@ -103,7 +107,7 @@ pub fn App() -> impl IntoView {
             <div class="status-bar">
                 <span class="difficulty">{move || game.with(Game::difficulty).name()}</span>
                 <span class="timer" aria-label="Time">
-                    {move || clock(game.with(Game::elapsed_seconds))}
+                    {move || clock(elapsed_seconds.get())}
                 </span>
                 <button on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
             </div>
@@ -113,6 +117,7 @@ pub fn App() -> impl IntoView {
             <Show when=move || game.with(Game::is_solved) && !celebration_closed.get()>
                 <Celebration
                     game
+                    elapsed_seconds
                     stats
                     on_new_game=Callback::new(move |_| dialog.set(Dialog::NewGame))
                     on_close=Callback::new(move |_| celebration_closed.set(true))

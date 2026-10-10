@@ -19,8 +19,6 @@ pub struct Game {
     givens: Grid,
     solution: Grid,
     marks: PlayerMarks,
-    #[serde(default)]
-    elapsed_seconds: u64,
     #[serde(skip)]
     undo_history: Vec<PlayerMarks>,
     #[serde(skip)]
@@ -38,7 +36,6 @@ impl Game {
                 entries: Grid::empty(),
                 pencil_marks: vec![0; CELL_COUNT],
             },
-            elapsed_seconds: 0,
             undo_history: Vec::new(),
             redo_history: Vec::new(),
         }
@@ -46,17 +43,6 @@ impl Game {
 
     pub fn difficulty(&self) -> Difficulty {
         self.difficulty
-    }
-
-    pub fn elapsed_seconds(&self) -> u64 {
-        self.elapsed_seconds
-    }
-
-    /// Counts one second of play. The clock stops once the puzzle is solved.
-    pub fn tick(&mut self) {
-        if !self.is_solved() {
-            self.elapsed_seconds += 1;
-        }
     }
 
     pub fn is_given(&self, cell: Cell) -> bool {

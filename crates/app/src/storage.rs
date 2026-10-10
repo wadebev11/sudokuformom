@@ -6,6 +6,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 pub const GAME_KEY: &str = "game";
+pub const ELAPSED_KEY: &str = "elapsed";
 pub const SETTINGS_KEY: &str = "settings";
 pub const PLAYED_KEY: &str = "played";
 pub const STATS_KEY: &str = "stats";
