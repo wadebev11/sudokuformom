@@ -171,6 +171,8 @@ header button,
   font-size: clamp(1.3rem, 6.5vw, 2rem);
   padding: 0;
   aspect-ratio: 1;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
