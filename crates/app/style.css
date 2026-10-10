@@ -372,9 +372,11 @@ header button.link {
   animation: fall 2.8s ease-in 3 both;
 }
 
+/* Hidden once landed so finished pieces aren't kept on the page to be drawn. */
 @keyframes fall {
   to {
     transform: translateY(120vh) rotate(360deg);
+    visibility: hidden;
   }
 }
 
