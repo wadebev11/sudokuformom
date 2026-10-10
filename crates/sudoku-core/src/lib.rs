@@ -4,6 +4,7 @@
 pub mod bank;
 pub mod game;
 pub mod grid;
+pub mod hint;
 pub mod solver;
 pub mod techniques;
 

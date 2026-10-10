@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::grid::{CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, digit_bit};
+use crate::hint::Hint;
 use crate::solver::solve;
 use crate::techniques::Difficulty;
 
@@ -128,6 +129,28 @@ impl Game {
         if let Some(next) = self.redo_history.pop() {
             self.undo_history
                 .push(std::mem::replace(&mut self.marks, next));
+        }
+    }
+
+    /// Clears a Mistake, places a number, or crosses Candidates out of the
+    /// Pencil Marks, filling in a cell's marks first if it has none.
+    pub fn apply_hint(&mut self, hint: &Hint) {
+        match hint {
+            Hint::Mistake(cell) => self.erase(*cell),
+            Hint::Step(step) => match step.placement {
+                Some((cell, digit)) => self.enter(cell, digit),
+                None => {
+                    self.record_for_undo();
+                    let board = self.board();
+                    for (cell, digit) in &step.eliminations {
+                        let marks = &mut self.marks.pencil_marks[*cell];
+                        if *marks == 0 {
+                            *marks = board.candidates(*cell);
+                        }
+                        *marks &= !digit_bit(*digit);
+                    }
+                }
+            },
         }
     }
 

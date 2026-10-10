@@ -1,5 +1,6 @@
 mod app;
 mod board;
+mod hint_panel;
 mod new_game_menu;
 mod number_pad;
 

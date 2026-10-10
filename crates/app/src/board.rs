@@ -1,18 +1,28 @@
 use leptos::prelude::*;
 use sudoku_core::grid::{CELL_COUNT, column_of, digit_bit, row_of, sees};
+use sudoku_core::hint::Hint;
 use sudoku_core::{Cell, Game};
 
 #[component]
-pub fn Board(game: RwSignal<Game>, selected: RwSignal<Option<Cell>>) -> impl IntoView {
+pub fn Board(
+    game: RwSignal<Game>,
+    selected: RwSignal<Option<Cell>>,
+    hint: RwSignal<Option<Hint>>,
+) -> impl IntoView {
     view! {
         <div class="board" role="group" aria-label="Sudoku board">
-            {(0..CELL_COUNT).map(|cell| view! { <BoardCell cell game selected /> }).collect_view()}
+            {(0..CELL_COUNT).map(|cell| view! { <BoardCell cell game selected hint /> }).collect_view()}
         </div>
     }
 }
 
 #[component]
-fn BoardCell(cell: Cell, game: RwSignal<Game>, selected: RwSignal<Option<Cell>>) -> impl IntoView {
+fn BoardCell(
+    cell: Cell,
+    game: RwSignal<Game>,
+    selected: RwSignal<Option<Cell>>,
+    hint: RwSignal<Option<Hint>>,
+) -> impl IntoView {
     let value = move || game.with(|game| game.value(cell));
     let class = move || {
         let selected_cell = selected.get();
@@ -29,6 +39,18 @@ fn BoardCell(cell: Cell, game: RwSignal<Game>, selected: RwSignal<Option<Cell>>)
         }
         if game.with(|game| game.is_mistake(cell)) {
             classes.push("mistake");
+        }
+        if hint.with(|hint| {
+            hint.as_ref()
+                .is_some_and(|hint| hint.cells().contains(&cell))
+        }) {
+            classes.push("hinted");
+        }
+        if hint.with(|hint| {
+            hint.as_ref()
+                .is_some_and(|hint| hint.target_cells().contains(&cell))
+        }) {
+            classes.push("hint-target");
         }
         if selected_cell == Some(cell) {
             classes.push("selected");

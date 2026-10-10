@@ -16,6 +16,8 @@
   --accent: #2457c5;
   --accent-text: #ffffff;
   --muted: #6b6f76;
+  --hint: #e09b1a;
+  --hint-target: #fbeacb;
   color-scheme: light;
 }
 
@@ -38,6 +40,8 @@
     --accent: #8fb2ff;
     --accent-text: #10131a;
     --muted: #9ba0a8;
+    --hint: #f2b84b;
+    --hint-target: #4a3a1a;
     color-scheme: dark;
   }
 }
@@ -157,7 +161,7 @@ header button,
 
 .toolbar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
 }
 
@@ -264,4 +268,30 @@ header button:active {
 .dialog button.primary {
   background: var(--accent);
   color: var(--accent-text);
+}
+
+.cell.hinted {
+  box-shadow: inset 0 0 0 3px var(--hint);
+}
+
+.cell.hint-target {
+  background: var(--hint-target);
+}
+
+.hint-panel {
+  background: var(--surface);
+  border-left: 4px solid var(--hint);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.hint-panel p {
+  margin: 6px 0 0;
+}
+
+.hint-instruction {
+  color: var(--muted);
+  font-size: 0.95rem;
 }
