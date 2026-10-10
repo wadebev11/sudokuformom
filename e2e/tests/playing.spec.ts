@@ -93,3 +93,26 @@ test("number keys do nothing while a dialog is open", async ({ page }) => {
   await page.keyboard.press(String(answer));
   await expect(cell(page, index)).toHaveAccessibleName(/, empty$/);
 });
+
+test("clicking outside a dialog closes it, clicking inside does not", async ({ page }) => {
+  await page.goto("/");
+  const clickBackdrop = () => page.mouse.click(5, 5);
+
+  for (const name of ["Stats", "Settings", "New game"]) {
+    await page.getByRole("button", { name }).click();
+    const dialog = page.getByRole("dialog", { name });
+    await dialog.getByRole("heading").click();
+    await expect(dialog).toBeVisible();
+    await clickBackdrop();
+    await expect(dialog).toBeHidden();
+  }
+});
+
+test("clicking outside the hard reset confirmation goes back to settings", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings" }).click();
+  await button(page, "Hard reset").click();
+  await page.mouse.click(5, 5);
+  await expect(page.getByRole("dialog", { name: "Hard reset" })).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+});

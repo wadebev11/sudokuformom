@@ -3,13 +3,14 @@ use sudoku_core::Difficulty;
 use sudoku_core::stats::Stats;
 
 use crate::format::clock;
+use crate::modal::Modal;
 
 #[component]
 pub fn StatsMenu(stats: RwSignal<Stats>, on_close: Callback<()>) -> impl IntoView {
     let time = |seconds: Option<u64>| seconds.map_or("–".to_string(), clock);
 
     view! {
-        <div class="overlay">
+        <Modal on_close>
             <div class="dialog" role="dialog" aria-label="Stats">
                 <h2>"Stats"</h2>
                 <table class="stats">
@@ -39,6 +40,6 @@ pub fn StatsMenu(stats: RwSignal<Stats>, on_close: Callback<()>) -> impl IntoVie
                 </table>
                 <button class="primary" on:click=move |_| on_close.run(())>"Done"</button>
             </div>
-        </div>
+        </Modal>
     }
 }

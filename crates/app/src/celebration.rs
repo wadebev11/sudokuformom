@@ -3,6 +3,7 @@ use sudoku_core::Game;
 use sudoku_core::stats::Stats;
 
 use crate::format::clock;
+use crate::modal::Modal;
 
 const CONFETTI_COLORS: [&str; 6] = [
     "#e8505b", "#f9a826", "#14b1ab", "#2457c5", "#9b5de5", "#f15bb5",
@@ -22,7 +23,7 @@ pub fn Celebration(
     };
 
     view! {
-        <div class="overlay celebration">
+        <Modal class="celebration" on_close>
             <div class="confetti" aria-hidden="true">
                 {(0..24)
                     .map(|index| {
@@ -45,6 +46,6 @@ pub fn Celebration(
                 <button class="primary" on:click=move |_| on_new_game.run(())>"New game"</button>
                 <button on:click=move |_| on_close.run(())>"Close"</button>
             </div>
-        </div>
+        </Modal>
     }
 }

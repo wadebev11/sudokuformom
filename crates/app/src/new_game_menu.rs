@@ -1,6 +1,8 @@
 use leptos::prelude::*;
 use sudoku_core::Difficulty;
 
+use crate::modal::Modal;
+
 #[component]
 pub fn NewGameMenu(
     progress_will_be_lost: Signal<bool>,
@@ -8,7 +10,7 @@ pub fn NewGameMenu(
     on_cancel: Callback<()>,
 ) -> impl IntoView {
     view! {
-        <div class="overlay">
+        <Modal on_close=on_cancel>
             <div class="dialog" role="dialog" aria-label="New game">
                 <h2>"New game"</h2>
                 <Show when=move || progress_will_be_lost.get()>
@@ -25,6 +27,6 @@ pub fn NewGameMenu(
                     .collect_view()}
                 <button on:click=move |_| on_cancel.run(())>"Cancel"</button>
             </div>
-        </div>
+        </Modal>
     }
 }

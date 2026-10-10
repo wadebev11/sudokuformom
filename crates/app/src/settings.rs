@@ -1,6 +1,7 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::modal::Modal;
 use crate::storage;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -58,8 +59,16 @@ pub fn SettingsMenu(settings: RwSignal<Settings>, on_close: Callback<()>) -> imp
         let _ = window().location().reload();
     };
 
+    let close_from_backdrop = Callback::new(move |_| {
+        if confirming_reset.get_untracked() {
+            confirming_reset.set(false);
+        } else {
+            on_close.run(());
+        }
+    });
+
     view! {
-        <div class="overlay">
+        <Modal on_close=close_from_backdrop>
             <Show
                 when=move || confirming_reset.get()
                 fallback=move || view! { <SettingsOptions settings confirming_reset on_close /> }
@@ -73,7 +82,7 @@ pub fn SettingsMenu(settings: RwSignal<Settings>, on_close: Callback<()>) -> imp
                     <button on:click=move |_| confirming_reset.set(false)>"Cancel"</button>
                 </div>
             </Show>
-        </div>
+        </Modal>
     }
 }
 
