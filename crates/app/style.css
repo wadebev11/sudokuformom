@@ -303,7 +303,7 @@ header button.link {
   width: 10px;
   height: 16px;
   border-radius: 2px;
-  animation: fall 2.8s ease-in infinite;
+  animation: fall 2.8s ease-in 3 both;
 }
 
 @keyframes fall {
