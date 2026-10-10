@@ -34,3 +34,11 @@ opt-level = 3
 
 [profile.release.package.puzzle-gen]
 opt-level = 3
+
+# The app's release build. Solving for a hint runs once per tap on the phone, so
+# sudoku-core is kept small there and stays fast for generating puzzles above.
+[profile.wasm-release]
+inherits = "release"
+
+[profile.wasm-release.package.sudoku-core]
+opt-level = "s"
