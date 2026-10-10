@@ -1,4 +1,9 @@
+mod explain;
+mod fish;
+mod intersections;
 mod singles;
+mod subsets;
+mod wings;
 
 use serde::{Deserialize, Serialize};
 
@@ -35,12 +40,34 @@ impl Difficulty {
 pub enum Technique {
     HiddenSingle,
     NakedSingle,
+    Pointing,
+    BoxLineReduction,
+    NakedPair,
+    HiddenPair,
+    NakedTriple,
+    HiddenTriple,
+    XWing,
+    NakedQuad,
+    HiddenQuad,
+    XYWing,
+    XYZWing,
+    Swordfish,
 }
 
 impl Technique {
     pub fn difficulty(self) -> Difficulty {
         match self {
             Technique::HiddenSingle | Technique::NakedSingle => Difficulty::Easy,
+            Technique::Pointing
+            | Technique::BoxLineReduction
+            | Technique::NakedPair
+            | Technique::HiddenPair => Difficulty::Medium,
+            Technique::NakedTriple
+            | Technique::HiddenTriple
+            | Technique::XWing
+            | Technique::NakedQuad
+            | Technique::HiddenQuad => Difficulty::Hard,
+            Technique::XYWing | Technique::XYZWing | Technique::Swordfish => Difficulty::Expert,
         }
     }
 
@@ -48,6 +75,18 @@ impl Technique {
         match self {
             Technique::HiddenSingle => "Hidden single",
             Technique::NakedSingle => "Naked single",
+            Technique::Pointing => "Pointing",
+            Technique::BoxLineReduction => "Box/line reduction",
+            Technique::NakedPair => "Naked pair",
+            Technique::HiddenPair => "Hidden pair",
+            Technique::NakedTriple => "Naked triple",
+            Technique::HiddenTriple => "Hidden triple",
+            Technique::XWing => "X-Wing",
+            Technique::NakedQuad => "Naked quad",
+            Technique::HiddenQuad => "Hidden quad",
+            Technique::XYWing => "XY-Wing",
+            Technique::XYZWing => "XYZ-Wing",
+            Technique::Swordfish => "Swordfish",
         }
     }
 }
@@ -93,25 +132,41 @@ impl LogicBoard {
         self.candidates[cell]
     }
 
-    fn has_candidate(&self, cell: Cell, digit: Digit) -> bool {
+    pub(super) fn has_candidate(&self, cell: Cell, digit: Digit) -> bool {
         self.candidates[cell] & digit_bit(digit) != 0
     }
 
     /// Empty cells in the unit that can still hold the digit.
-    fn cells_for(&self, unit: &Unit, digit: Digit) -> Vec<Cell> {
+    pub(super) fn cells_for(&self, unit: &Unit, digit: Digit) -> Vec<Cell> {
         unit.cells()
             .into_iter()
             .filter(|cell| self.has_candidate(*cell, digit))
             .collect()
     }
 
-    fn empty_cells(&self) -> impl Iterator<Item = Cell> + '_ {
+    pub(super) fn empty_cells(&self) -> impl Iterator<Item = Cell> + '_ {
         (0..CELL_COUNT).filter(|cell| self.grid.is_empty(*cell))
     }
 
     /// Finds the simplest Technique that makes progress.
     pub fn next_step(&self) -> Option<Step> {
-        singles::hidden_single(self).or_else(|| singles::naked_single(self))
+        let finders: [fn(&LogicBoard) -> Option<Step>; 14] = [
+            singles::hidden_single,
+            singles::naked_single,
+            intersections::pointing,
+            intersections::box_line_reduction,
+            |board| subsets::naked_subset(board, 2),
+            |board| subsets::hidden_subset(board, 2),
+            |board| subsets::naked_subset(board, 3),
+            |board| subsets::hidden_subset(board, 3),
+            |board| fish::fish(board, 2),
+            |board| subsets::naked_subset(board, 4),
+            |board| subsets::hidden_subset(board, 4),
+            wings::xy_wing,
+            wings::xyz_wing,
+            |board| fish::fish(board, 3),
+        ];
+        finders.iter().find_map(|find| find(self))
     }
 
     pub fn apply(&mut self, step: &Step) {

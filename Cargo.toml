@@ -13,3 +13,10 @@ serde_json = "1"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+
+# Solving and generating are search-heavy; optimizing them keeps tests and dev builds fast.
+[profile.dev.package.sudoku-core]
+opt-level = 3
+
+[profile.dev.package.puzzle-gen]
+opt-level = 3

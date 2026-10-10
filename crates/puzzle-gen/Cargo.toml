@@ -8,6 +8,7 @@ sudoku-core.workspace = true
 serde_json.workspace = true
 rand = "0.9"
 clap = { version = "4", features = ["derive"] }
+rayon = "1.12.0"
 
 [lints]
 workspace = true

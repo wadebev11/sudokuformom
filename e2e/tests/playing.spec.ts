@@ -19,3 +19,12 @@ test("a wrong number shows in red until it is erased", async ({ page }) => {
   await padButton(page, "Erase").click();
   await expect(cell(page, index)).not.toHaveClass(/\bmistake\b/);
 });
+
+test("choosing a difficulty starts a new puzzle at that level", async ({ page }) => {
+  await page.goto("/");
+  const before = await readBoard(page);
+  await page.getByRole("button", { name: "New game" }).click();
+  await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Hard" }).click();
+  await expect(page.getByText("Hard", { exact: true })).toBeVisible();
+  expect(await readBoard(page)).not.toEqual(before);
+});
