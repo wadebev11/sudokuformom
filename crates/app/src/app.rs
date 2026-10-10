@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use leptos::ev;
 use leptos::prelude::*;
 use sudoku_core::hint::Hint;
 use sudoku_core::stats::Stats;
@@ -58,8 +59,12 @@ pub fn App() -> impl IntoView {
     let celebration_closed = RwSignal::new(false);
     let celebration_open = Memo::new(move |_| solved.get() && !celebration_closed.get());
 
-    Effect::new(move || game.with(|game| storage::save(GAME_KEY, game)));
-    Effect::new(move || storage::save(ELAPSED_KEY, &elapsed_seconds.get()));
+    let on_screen = RwSignal::new(app_is_on_screen());
+    // The clock is saved alongside each move and when the app is hidden, rather than every tick.
+    Effect::new(move || {
+        game.with(|game| storage::save(GAME_KEY, game));
+        storage::save(ELAPSED_KEY, &elapsed_seconds.get_untracked());
+    });
     Effect::new(move || played.with(|played| storage::save(PLAYED_KEY, played)));
     Effect::new(move || settings.with(|settings| storage::save(SETTINGS_KEY, settings)));
     Effect::new(move || {
@@ -81,14 +86,29 @@ pub fn App() -> impl IntoView {
         is_solved
     });
 
-    set_interval(
-        move || {
-            if app_is_on_screen() && !solved.get_untracked() {
-                *elapsed_seconds.write() += 1;
+    let visibility_listener = window_event_listener(
+        ev::Custom::<ev::Event>::new("visibilitychange"),
+        move |_| {
+            let is_on_screen = app_is_on_screen();
+            on_screen.set(is_on_screen);
+            if !is_on_screen {
+                storage::save(ELAPSED_KEY, &elapsed_seconds.get_untracked());
             }
         },
-        Duration::from_secs(1),
     );
+    on_cleanup(move || visibility_listener.remove());
+
+    Effect::new(move || {
+        if on_screen.get()
+            && !solved.get()
+            && let Ok(ticker) = set_interval_with_handle(
+                move || *elapsed_seconds.write() += 1,
+                Duration::from_secs(1),
+            )
+        {
+            on_cleanup(move || ticker.clear());
+        }
+    });
 
     let start_new_game = Callback::new(move |difficulty| {
         played.update(|played| game.set(new_game(difficulty, played)));

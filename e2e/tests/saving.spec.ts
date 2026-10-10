@@ -11,6 +11,17 @@ test("the game in progress survives closing and reopening the app", async ({ pag
   expect(await readBoard(page)).toEqual(before);
 });
 
+test("the time survives closing and reopening the app", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-01-01T10:00:00") });
+  await page.goto("/");
+  await page.clock.pauseAt(new Date("2026-01-01T10:00:01"));
+  await page.clock.runFor(64_000);
+  await expect(page.getByLabel("Time")).toHaveText("1:04");
+
+  await page.reload();
+  await expect(page.getByLabel("Time")).toHaveText("1:04");
+});
+
 test("mistakes are not shown in red when that setting is off, even after reopening", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Settings" }).click();
