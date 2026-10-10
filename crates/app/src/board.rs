@@ -135,7 +135,7 @@ fn BoardCell(
                 } = contents.get();
                 match value {
                     Some(digit) => digit.to_string().into_any(),
-                    None => pencil_marks_view(pencil_marks).into_any(),
+                    None => pencil_marks_view(pencil_marks, 0).into_any(),
                 }
             }}
         </button>
@@ -160,14 +160,17 @@ pub fn edge_classes(row: usize, column: usize, last_row: usize, last_column: usi
 }
 
 /// Drawn whole when the marks change rather than as 9 reactive spans per cell,
-/// and left out entirely when a cell has no marks.
-fn pencil_marks_view(pencil_marks: DigitSet) -> impl IntoView {
-    (pencil_marks != 0).then(|| {
+/// and left out entirely when a cell has no marks. Crossed out marks are
+/// only used to show Eliminations in technique examples.
+pub fn pencil_marks_view(pencil_marks: DigitSet, crossed_out: DigitSet) -> impl IntoView {
+    (pencil_marks | crossed_out != 0).then(|| {
         view! {
             <span class="pencil-marks" aria-hidden="true">
                 {(1..=9)
                     .map(|digit| {
-                        view! { <span>{(pencil_marks & digit_bit(digit) != 0).then_some(digit)}</span> }
+                        let is_crossed_out = crossed_out & digit_bit(digit) != 0;
+                        let is_shown = is_crossed_out || pencil_marks & digit_bit(digit) != 0;
+                        view! { <span class:crossed-out=is_crossed_out>{is_shown.then_some(digit)}</span> }
                     })
                     .collect_view()}
             </span>

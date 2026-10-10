@@ -3,6 +3,7 @@ use leptos::prelude::*;
 use sudoku_core::{Difficulty, Technique};
 
 use crate::modal::Modal;
+use crate::technique_example::TechniqueExample;
 
 #[component]
 pub fn TechniqueGuide(current: Technique, on_close: Callback<()>) -> impl IntoView {
@@ -36,6 +37,7 @@ pub fn TechniqueGuide(current: Technique, on_close: Callback<()>) -> impl IntoVi
                                             >
                                                 <h4>{technique.name()}</h4>
                                                 <p>{technique.description()}</p>
+                                                <TechniqueExample technique />
                                             </section>
                                         }
                                     })

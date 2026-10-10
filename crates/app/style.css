@@ -277,6 +277,11 @@ header button:active {
   justify-content: center;
 }
 
+.pencil-marks .crossed-out {
+  color: var(--mistake);
+  text-decoration: line-through;
+}
+
 header h1 {
   margin-right: auto;
 }
@@ -601,4 +606,18 @@ header button.link {
 
 .technique p {
   margin: 4px 0 0;
+}
+
+.technique-example {
+  margin: 8px 0 0;
+}
+
+.technique-example .board {
+  max-width: calc(var(--columns) * 44px);
+}
+
+.technique-example figcaption {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
 }

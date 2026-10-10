@@ -10,6 +10,7 @@ mod scenery;
 mod settings;
 mod stats_menu;
 mod storage;
+mod technique_example;
 mod technique_guide;
 
 fn main() {
