@@ -557,6 +557,19 @@ header button.link {
   fill: var(--panda-eye);
 }
 
+.panda-closed-eye {
+  fill: none;
+  stroke: var(--panda-eye);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.panda-arm {
+  fill: var(--panda-patch);
+  stroke: var(--panda-line);
+  stroke-width: 2.5;
+}
+
 .panda-line {
   fill: none;
   stroke: var(--panda-line);

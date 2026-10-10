@@ -183,20 +183,21 @@ fn Panda() -> impl IntoView {
                 <ellipse class="panda-patch" cx="106" cy="128" rx="17" ry="10" />
             </g>
             <g class="panda-asleep">
-                <circle class="panda-patch" cx="28" cy="74" r="8" />
-                <circle class="panda-patch" cx="56" cy="72" r="8" />
-                <path class="panda-sketch" d="M40 122 Q44 88 86 88 Q130 88 130 112 Q130 122 120 122 Z" />
-                <circle class="panda-sketch" cx="42" cy="98" r="24" />
-                <ellipse class="panda-patch" cx="34" cy="98" rx="6.5" ry="5.5" />
-                <ellipse class="panda-patch" cx="51" cy="98" rx="6.5" ry="5.5" />
-                <path class="panda-line" d="M30 98 Q34 101 38 98" />
-                <path class="panda-line" d="M47 98 Q51 101 55 98" />
-                <ellipse class="panda-patch" cx="42" cy="108" rx="3.5" ry="2.5" />
-                <ellipse class="panda-patch" cx="60" cy="122" rx="13" ry="5.5" />
-                <ellipse class="panda-patch" cx="116" cy="122" rx="12" ry="5.5" />
-                <path class="panda-line" d="M84 40 h7 l-7 7 h7" />
-                <path class="panda-line" d="M98 26 h9 l-9 9 h9" />
-                <path class="panda-line" d="M114 10 h11 l-11 11 h11" />
+                <g transform="rotate(-6 70 120)">
+                    <circle class="panda-patch" cx="37" cy="54" r="13" />
+                    <circle class="panda-patch" cx="103" cy="54" r="13" />
+                    <circle class="panda-sketch" cx="70" cy="92" r="44" />
+                    <ellipse class="panda-patch" cx="53" cy="86" rx="10" ry="12.5" transform="rotate(22 53 86)" />
+                    <ellipse class="panda-patch" cx="87" cy="86" rx="10" ry="12.5" transform="rotate(-22 87 86)" />
+                    <path class="panda-closed-eye" d="M49 88 Q54 92 59 88" />
+                    <path class="panda-closed-eye" d="M81 88 Q86 92 91 88" />
+                    <ellipse class="panda-patch" cx="70" cy="100" rx="5" ry="3.5" />
+                </g>
+                <rect class="panda-arm" x="4" y="110" width="72" height="24" rx="12" />
+                <rect class="panda-arm" x="64" y="114" width="72" height="24" rx="12" />
+                <path class="panda-line" d="M114 30 h6 l-6 6 h6" />
+                <path class="panda-line" d="M121 16 h8 l-8 8 h8" />
+                <path class="panda-line" d="M126 2 h10 l-10 10 h10" />
             </g>
         </svg>
     }
