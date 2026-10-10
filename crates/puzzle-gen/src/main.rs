@@ -23,6 +23,16 @@ struct Arguments {
     hard: usize,
     #[arg(long, default_value_t = 750)]
     expert: usize,
+    /// Regenerate only these difficulties, keeping the rest of the existing bank.
+    #[arg(long, value_delimiter = ',', value_parser = parse_difficulty)]
+    only: Vec<Difficulty>,
+}
+
+fn parse_difficulty(text: &str) -> Result<Difficulty, String> {
+    Difficulty::ALL
+        .into_iter()
+        .find(|difficulty| difficulty.name().eq_ignore_ascii_case(text))
+        .ok_or_else(|| format!("expected one of easy, medium, hard, expert, got {text}"))
 }
 
 impl Arguments {
@@ -40,8 +50,14 @@ const ATTEMPTS_PER_BATCH: u64 = 256;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arguments = Arguments::parse();
-    let mut bank = PuzzleBank::default();
-    for difficulty in Difficulty::ALL {
+    let (mut bank, difficulties) = if arguments.only.is_empty() {
+        (PuzzleBank::default(), Difficulty::ALL.to_vec())
+    } else {
+        let existing = serde_json::from_str(&std::fs::read_to_string(&arguments.out)?)?;
+        (existing, arguments.only.clone())
+    };
+    for difficulty in difficulties {
+        bank.remove(difficulty);
         let wanted = arguments.count(difficulty);
         let mut attempts = 0;
         while bank.puzzles(difficulty).len() < wanted {

@@ -18,6 +18,10 @@ impl PuzzleBank {
     pub fn add(&mut self, difficulty: Difficulty, puzzle: Grid) {
         self.0.entry(difficulty).or_default().push(puzzle);
     }
+
+    pub fn remove(&mut self, difficulty: Difficulty) {
+        self.0.remove(&difficulty);
+    }
 }
 
 /// Which puzzles in the bank have been started, so new games don't repeat.
