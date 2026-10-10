@@ -7,6 +7,7 @@ pub fn NumberPad(
     game: RwSignal<Game>,
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
+    solved: Memo<bool>,
 ) -> impl IntoView {
     let pencil_mode = RwSignal::new(false);
     let change_game = move |change: &dyn Fn(&mut Game)| {
@@ -51,7 +52,7 @@ pub fn NumberPad(
             <button
                 class:active=move || hint.with(Option::is_some)
                 on:click=show_or_apply_hint
-                disabled=move || game.with(Game::is_solved)
+                disabled=move || solved.get()
             >
                 "Hint"
             </button>

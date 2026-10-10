@@ -166,6 +166,6 @@ impl Game {
     }
 
     pub fn is_solved(&self) -> bool {
-        self.board() == self.solution
+        (0..CELL_COUNT).all(|cell| self.value(cell) == Some(self.solution.get(cell)))
     }
 }

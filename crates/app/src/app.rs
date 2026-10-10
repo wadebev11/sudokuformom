@@ -50,6 +50,7 @@ pub fn App() -> impl IntoView {
     let played = RwSignal::new(played_puzzles);
     // Kept apart from the game so the clock ticking each second doesn't redraw the board.
     let elapsed_seconds = RwSignal::new(storage::load::<u64>(ELAPSED_KEY).unwrap_or_default());
+    let solved = Memo::new(move |_| game.with(Game::is_solved));
     let settings = RwSignal::new(storage::load::<Settings>(SETTINGS_KEY).unwrap_or_default());
     let stats = RwSignal::new(storage::load::<Stats>(STATS_KEY).unwrap_or_default());
     let selected = RwSignal::new(None::<Cell>);
@@ -65,18 +66,18 @@ pub fn App() -> impl IntoView {
 
     // Records a solve only when it happens, not when an already solved game is reopened.
     Effect::new(move |was_solved: Option<bool>| {
-        let solved = game.with(Game::is_solved);
-        if solved && was_solved == Some(false) {
+        let is_solved = solved.get();
+        if is_solved && was_solved == Some(false) {
             let difficulty = game.with_untracked(Game::difficulty);
             let seconds = elapsed_seconds.get_untracked();
             stats.update(|stats| stats.record_solve(difficulty, seconds));
         }
-        solved
+        is_solved
     });
 
     set_interval(
         move || {
-            if app_is_on_screen() && !game.with_untracked(Game::is_solved) {
+            if app_is_on_screen() && !solved.get_untracked() {
                 *elapsed_seconds.write() += 1;
             }
         },
@@ -113,8 +114,8 @@ pub fn App() -> impl IntoView {
             </div>
             <Board game selected hint settings />
             <HintPanel hint />
-            <NumberPad game selected hint />
-            <Show when=move || game.with(Game::is_solved) && !celebration_closed.get()>
+            <NumberPad game selected hint solved />
+            <Show when=move || solved.get() && !celebration_closed.get()>
                 <Celebration
                     game
                     elapsed_seconds
@@ -126,7 +127,7 @@ pub fn App() -> impl IntoView {
             <Show when=move || dialog.get() == Dialog::NewGame>
                 <NewGameMenu
                     progress_will_be_lost=Signal::derive(move || {
-                        game.with(|game| game.has_progress() && !game.is_solved())
+                        game.with(Game::has_progress) && !solved.get()
                     })
                     on_choose=start_new_game
                     on_cancel=close_dialog
