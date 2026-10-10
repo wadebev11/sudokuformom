@@ -55,21 +55,21 @@ fn hints_ignore_wrong_pencil_marks() {
 }
 
 #[test]
-fn applying_a_crossing_out_hint_fills_in_notes_without_the_ruled_out_numbers() {
+fn applying_an_elimination_hint_fills_in_pencil_marks_without_the_eliminated_candidates() {
     let mut game = Game::new(grid(EXPERT_PUZZLE), Difficulty::Expert);
-    let mut crossing_out = game.hint().unwrap();
-    while crossing_out.places_a_number() {
-        game.apply_hint(&crossing_out);
-        crossing_out = game.hint().unwrap();
+    let mut elimination_hint = game.hint().unwrap();
+    while elimination_hint.places_a_number() {
+        game.apply_hint(&elimination_hint);
+        elimination_hint = game.hint().unwrap();
     }
-    let Hint::Step(step) = &crossing_out else {
+    let Hint::Step(step) = &elimination_hint else {
         panic!("expected a step")
     };
 
-    game.apply_hint(&crossing_out);
+    game.apply_hint(&elimination_hint);
     for (cell, digit) in &step.eliminations {
         assert_ne!(game.pencil_marks(*cell), 0);
         assert_eq!(game.pencil_marks(*cell) & (1 << digit), 0);
     }
-    assert_ne!(game.hint(), Some(crossing_out));
+    assert_ne!(game.hint(), Some(elimination_hint));
 }
