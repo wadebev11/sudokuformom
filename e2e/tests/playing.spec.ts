@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cell, emptyCellAndAnswer, enter, padButton, readBoard, solve, wrongDigit } from "./sudoku";
+import { button, cell, emptyCellAndAnswer, enter, readBoard, solve, wrongDigit } from "./sudoku";
 
 test("filling in every number solves the puzzle", async ({ page }) => {
   await page.goto("/");
@@ -16,7 +16,7 @@ test("a wrong number shows in red until it is erased", async ({ page }) => {
   const { index, answer } = await emptyCellAndAnswer(page);
   await enter(page, index, wrongDigit(answer));
   await expect(cell(page, index)).toHaveClass(/\bmistake\b/);
-  await padButton(page, "Erase").click();
+  await button(page, "Erase").click();
   await expect(cell(page, index)).not.toHaveClass(/\bmistake\b/);
 });
 
@@ -27,4 +27,21 @@ test("choosing a difficulty starts a new puzzle at that level", async ({ page })
   await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Hard" }).click();
   await expect(page.getByText("Hard", { exact: true })).toBeVisible();
   expect(await readBoard(page)).not.toEqual(before);
+});
+
+test("pencil marks can be written, cleared by a number, and undone", async ({ page }) => {
+  await page.goto("/");
+  const { index, answer } = await emptyCellAndAnswer(page);
+  await cell(page, index).click();
+  await button(page, "Pencil").click();
+  await button(page, String(answer)).click();
+  await button(page, String(wrongDigit(answer))).click();
+  await expect(cell(page, index)).toHaveAccessibleName(/notes/);
+
+  await button(page, "Pencil").click();
+  await button(page, String(answer)).click();
+  await expect(cell(page, index)).toHaveAccessibleName(new RegExp(`, ${answer}$`));
+
+  await button(page, "Undo").click();
+  await expect(cell(page, index)).toHaveAccessibleName(/notes/);
 });

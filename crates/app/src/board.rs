@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use sudoku_core::grid::{CELL_COUNT, column_of, row_of, sees};
+use sudoku_core::grid::{CELL_COUNT, column_of, digit_bit, row_of, sees};
 use sudoku_core::{Cell, Game};
 
 #[component]
@@ -41,7 +41,15 @@ fn BoardCell(cell: Cell, game: RwSignal<Game>, selected: RwSignal<Option<Cell>>)
         classes.join(" ")
     };
     let label = move || {
-        let contents = value().map_or("empty".to_string(), |digit| digit.to_string());
+        let pencil_marks: Vec<String> = (1..=9)
+            .filter(|digit| game.with(|game| game.pencil_marks(cell)) & digit_bit(*digit) != 0)
+            .map(|digit| digit.to_string())
+            .collect();
+        let contents = match value() {
+            Some(digit) => digit.to_string(),
+            None if pencil_marks.is_empty() => "empty".to_string(),
+            None => format!("empty, notes {}", pencil_marks.join(" ")),
+        };
         format!(
             "Row {}, column {}, {contents}",
             row_of(cell) + 1,
@@ -51,7 +59,26 @@ fn BoardCell(cell: Cell, game: RwSignal<Game>, selected: RwSignal<Option<Cell>>)
 
     view! {
         <button class=class aria-label=label on:click=move |_| selected.set(Some(cell))>
-            {move || value().map(|digit| digit.to_string())}
+            {move || match value() {
+                Some(digit) => digit.to_string().into_any(),
+                None => view! { <PencilMarks cell game /> }.into_any(),
+            }}
         </button>
+    }
+}
+
+#[component]
+fn PencilMarks(cell: Cell, game: RwSignal<Game>) -> impl IntoView {
+    let marks = move || game.with(|game| game.pencil_marks(cell));
+    view! {
+        <span class="pencil-marks" aria-hidden="true">
+            {(1..=9)
+                .map(|digit| {
+                    view! {
+                        <span>{move || (marks() & digit_bit(digit) != 0).then_some(digit)}</span>
+                    }
+                })
+                .collect_view()}
+        </span>
     }
 }

@@ -5,8 +5,7 @@ export const board = (page: Page) => page.getByRole("group", { name: "Sudoku boa
 export const cell = (page: Page, index: number) =>
   board(page).getByRole("button", { name: new RegExp(`^Row ${Math.floor(index / 9) + 1}, column ${(index % 9) + 1},`) });
 
-export const padButton = (page: Page, name: string) =>
-  page.locator(".number-pad").getByRole("button", { name, exact: true });
+export const button = (page: Page, name: string) => page.getByRole("button", { name, exact: true });
 
 /** Reads the board the way a player sees it: one entry per cell, 0 when empty. */
 export async function readBoard(page: Page): Promise<number[]> {
@@ -49,7 +48,7 @@ export function solve(grid: number[]): number[] {
 
 export async function enter(page: Page, index: number, digit: number) {
   await cell(page, index).click();
-  await padButton(page, String(digit)).click();
+  await button(page, String(digit)).click();
 }
 
 export async function emptyCellAndAnswer(page: Page): Promise<{ index: number; answer: number }> {

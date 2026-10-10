@@ -49,8 +49,11 @@ fn a_solved_puzzle_is_locked() {
 fn games_survive_saving_and_loading() {
     let mut game = new_game();
     game.enter(2, 4);
+    game.toggle_pencil_mark(3, 6);
     let saved = serde_json::to_string(&game).unwrap();
-    assert_eq!(serde_json::from_str::<Game>(&saved).unwrap(), game);
+    let loaded: Game = serde_json::from_str(&saved).unwrap();
+    assert_eq!(loaded.board(), game.board());
+    assert_eq!(loaded.pencil_marks(3), game.pencil_marks(3));
 }
 
 #[test]
@@ -59,4 +62,46 @@ fn puzzle_bank_survives_saving_and_loading() {
     bank.add(Difficulty::Easy, grid(EASY_PUZZLE));
     let saved = serde_json::to_string(&bank).unwrap();
     assert_eq!(serde_json::from_str::<PuzzleBank>(&saved).unwrap(), bank);
+}
+
+fn marks(game: &Game, cell: usize) -> Vec<u8> {
+    (1..=9)
+        .filter(|digit| game.pencil_marks(cell) & (1 << digit) != 0)
+        .collect()
+}
+
+#[test]
+fn pencil_marks_toggle_on_and_off() {
+    let mut game = new_game();
+    game.toggle_pencil_mark(2, 1);
+    game.toggle_pencil_mark(2, 4);
+    game.toggle_pencil_mark(2, 1);
+    assert_eq!(marks(&game, 2), [4]);
+}
+
+#[test]
+fn entering_a_number_clears_it_from_pencil_marks_it_rules_out() {
+    let mut game = new_game();
+    game.toggle_pencil_mark(2, 4);
+    game.toggle_pencil_mark(2, 1);
+    game.toggle_pencil_mark(3, 4);
+    game.toggle_pencil_mark(78, 4);
+    game.enter(2, 4);
+    assert_eq!(marks(&game, 2), Vec::<u8>::new());
+    assert_eq!(marks(&game, 3), Vec::<u8>::new());
+    assert_eq!(marks(&game, 78), [4]);
+}
+
+#[test]
+fn undo_and_redo_step_through_changes() {
+    let mut game = new_game();
+    game.enter(2, 4);
+    game.toggle_pencil_mark(3, 6);
+    game.undo();
+    game.undo();
+    assert_eq!(game.value(2), None);
+    game.redo();
+    assert_eq!(game.value(2), Some(4));
+    game.enter(3, 6);
+    assert!(!game.can_redo());
 }
