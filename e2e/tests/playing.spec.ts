@@ -64,3 +64,32 @@ test("pencil marks can be written, cleared by a number, and undone", async ({ pa
   await button(page, "Undo").click();
   await expect(cell(page, index)).toHaveAccessibleName(/notes/);
 });
+
+test("number keys fill the selected cell and Backspace erases it", async ({ page }) => {
+  await page.goto("/");
+  const { index, answer } = await emptyCellAndAnswer(page);
+  await cell(page, index).click();
+  await page.keyboard.press(String(answer));
+  await expect(cell(page, index)).toHaveAccessibleName(new RegExp(`, ${answer}$`));
+
+  await page.keyboard.press("Backspace");
+  await expect(cell(page, index)).toHaveAccessibleName(/, empty$/);
+});
+
+test("number keys write pencil marks in pencil mode", async ({ page }) => {
+  await page.goto("/");
+  const { index, answer } = await emptyCellAndAnswer(page);
+  await cell(page, index).click();
+  await button(page, "Pencil").click();
+  await page.keyboard.press(String(answer));
+  await expect(cell(page, index)).toHaveAccessibleName(new RegExp(`notes ${answer}$`));
+});
+
+test("number keys do nothing while a dialog is open", async ({ page }) => {
+  await page.goto("/");
+  const { index, answer } = await emptyCellAndAnswer(page);
+  await cell(page, index).click();
+  await page.getByRole("button", { name: "Stats" }).click();
+  await page.keyboard.press(String(answer));
+  await expect(cell(page, index)).toHaveAccessibleName(/, empty$/);
+});

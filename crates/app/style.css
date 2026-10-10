@@ -145,6 +145,10 @@ header button,
   justify-content: center;
 }
 
+.cell:focus-visible {
+  outline: none;
+}
+
 .cell:nth-child(9n) {
   border-right: none;
 }

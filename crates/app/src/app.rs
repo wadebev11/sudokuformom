@@ -53,6 +53,7 @@ pub fn App() -> impl IntoView {
     let hint = RwSignal::new(None::<Hint>);
     let dialog = RwSignal::new(Dialog::None);
     let celebration_closed = RwSignal::new(false);
+    let celebration_open = Memo::new(move |_| solved.get() && !celebration_closed.get());
 
     Effect::new(move || game.with(|game| storage::save(GAME_KEY, game)));
     Effect::new(move || storage::save(ELAPSED_KEY, &elapsed_seconds.get()));
@@ -116,8 +117,16 @@ pub fn App() -> impl IntoView {
             </div>
             <Board game selected hint settings />
             <HintPanel hint />
-            <NumberPad game selected hint solved />
-            <Show when=move || solved.get() && !celebration_closed.get()>
+            <NumberPad
+                game
+                selected
+                hint
+                solved
+                accepts_keys=Signal::derive(move || {
+                    dialog.get() == Dialog::None && !celebration_open.get()
+                })
+            />
+            <Show when=move || celebration_open.get()>
                 <Celebration
                     game
                     elapsed_seconds
