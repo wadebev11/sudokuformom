@@ -79,12 +79,7 @@ fn BoardCell(
         let contents = contents.get();
         let selected_cell = selected.get();
         let mut class = String::from("cell");
-        if column_of(cell) % 3 == 2 && column_of(cell) != 8 {
-            class.push_str(" box-edge-right");
-        }
-        if row_of(cell) % 3 == 2 && row_of(cell) != 8 {
-            class.push_str(" box-edge-bottom");
-        }
+        class.push_str(&edge_classes(row_of(cell), column_of(cell), 8, 8));
         if contents.is_given {
             class.push_str(" given");
         }
@@ -145,6 +140,23 @@ fn BoardCell(
             }}
         </button>
     }
+}
+
+/// Classes for the lines on a cell's right and bottom: thick between Boxes,
+/// none on the outside where the board's own border is.
+pub fn edge_classes(row: usize, column: usize, last_row: usize, last_column: usize) -> String {
+    let mut classes = String::new();
+    if column == last_column {
+        classes.push_str(" last-column");
+    } else if column % 3 == 2 {
+        classes.push_str(" box-edge-right");
+    }
+    if row == last_row {
+        classes.push_str(" last-row");
+    } else if row % 3 == 2 {
+        classes.push_str(" box-edge-bottom");
+    }
+    classes
 }
 
 /// Drawn whole when the marks change rather than as 9 reactive spans per cell,
