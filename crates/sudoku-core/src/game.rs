@@ -6,10 +6,34 @@ use crate::solver::solve;
 use crate::techniques::Difficulty;
 
 /// What the player has changed, so it can be undone.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 struct PlayerMarks {
     entries: Grid,
-    pencil_marks: Vec<DigitSet>,
+    #[serde(with = "pencil_mark_list")]
+    pencil_marks: [DigitSet; CELL_COUNT],
+}
+
+/// Serde only derives arrays up to 32 long, so the 81 cells are saved as a list.
+mod pencil_mark_list {
+    use serde::de::Error;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    use crate::grid::{CELL_COUNT, DigitSet};
+
+    pub fn serialize<S: Serializer>(
+        marks: &[DigitSet; CELL_COUNT],
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        marks.as_slice().serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<[DigitSet; CELL_COUNT], D::Error> {
+        Vec::<DigitSet>::deserialize(deserializer)?
+            .try_into()
+            .map_err(|marks: Vec<DigitSet>| Error::invalid_length(marks.len(), &"81 cells"))
+    }
 }
 
 /// One puzzle being played: its Givens, its solution and what the player has entered.
@@ -34,7 +58,7 @@ impl Game {
             solution,
             marks: PlayerMarks {
                 entries: Grid::empty(),
-                pencil_marks: vec![0; CELL_COUNT],
+                pencil_marks: [0; CELL_COUNT],
             },
             undo_history: Vec::new(),
             redo_history: Vec::new(),
@@ -76,7 +100,7 @@ impl Game {
     }
 
     fn record_for_undo(&mut self) {
-        self.undo_history.push(self.marks.clone());
+        self.undo_history.push(self.marks);
         self.redo_history.clear();
     }
 
