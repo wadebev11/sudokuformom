@@ -27,3 +27,9 @@ pub fn save<T: Serialize>(key: &str, value: &T) {
         let _ = storage.set_item(key, &json);
     }
 }
+
+pub fn clear_all() {
+    if let Some(storage) = local_storage() {
+        let _ = storage.clear();
+    }
+}

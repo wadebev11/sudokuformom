@@ -435,3 +435,8 @@ header button.link {
   font-weight: 600;
   padding: 8px 0 0;
 }
+
+.dialog button.danger {
+  background: var(--mistake);
+  color: var(--surface);
+}
