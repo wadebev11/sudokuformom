@@ -1,9 +1,26 @@
 use leptos::prelude::*;
-use sudoku_core::grid::{CELL_COUNT, column_of, digit_bit, row_of, sees};
+use sudoku_core::grid::{CELL_COUNT, DigitSet, column_of, digit_bit, row_of, sees};
 use sudoku_core::hint::Hint;
-use sudoku_core::{Cell, Game};
+use sudoku_core::{Cell, Digit, Game};
 
 use crate::settings::Settings;
+
+/// Everything a cell shows from the game. Each cell watches its own copy, so
+/// a move only redraws the cells it actually changed.
+#[derive(Clone, Copy, PartialEq)]
+struct CellContents {
+    value: Option<Digit>,
+    pencil_marks: DigitSet,
+    is_given: bool,
+    is_mistake: bool,
+}
+
+/// The cells the shown Hint points at, worked out once per Hint rather than once per cell.
+#[derive(Clone, Default, PartialEq)]
+struct HintedCells {
+    cells: Vec<Cell>,
+    targets: Vec<Cell>,
+}
 
 #[component]
 pub fn Board(
@@ -12,9 +29,30 @@ pub fn Board(
     hint: RwSignal<Option<Hint>>,
     settings: RwSignal<Settings>,
 ) -> impl IntoView {
+    let selected_value = Memo::new(move |_| {
+        selected
+            .get()
+            .and_then(|cell| game.with(|game| game.value(cell)))
+    });
+    let hinted = Memo::new(move |_| {
+        hint.with(|hint| {
+            hint.as_ref()
+                .map(|hint| HintedCells {
+                    cells: hint.cells(),
+                    targets: hint.target_cells(),
+                })
+                .unwrap_or_default()
+        })
+    });
+    let show_mistakes = Memo::new(move |_| settings.with(|settings| settings.show_mistakes));
+
     view! {
         <div class="board" role="group" aria-label="Sudoku board">
-            {(0..CELL_COUNT).map(|cell| view! { <BoardCell cell game selected hint settings /> }).collect_view()}
+            {(0..CELL_COUNT)
+                .map(|cell| {
+                    view! { <BoardCell cell game selected selected_value hinted show_mistakes /> }
+                })
+                .collect_view()}
         </div>
     }
 }
@@ -24,62 +62,69 @@ fn BoardCell(
     cell: Cell,
     game: RwSignal<Game>,
     selected: RwSignal<Option<Cell>>,
-    hint: RwSignal<Option<Hint>>,
-    settings: RwSignal<Settings>,
+    selected_value: Memo<Option<Digit>>,
+    hinted: Memo<HintedCells>,
+    show_mistakes: Memo<bool>,
 ) -> impl IntoView {
-    let value = move || game.with(|game| game.value(cell));
-    let class = move || {
+    let contents = Memo::new(move |_| {
+        game.with(|game| CellContents {
+            value: game.value(cell),
+            pencil_marks: game.pencil_marks(cell),
+            is_given: game.is_given(cell),
+            is_mistake: game.is_mistake(cell),
+        })
+    });
+    // A memo, so the page is only touched for cells whose classes really change.
+    let class = Memo::new(move |_| {
+        let contents = contents.get();
         let selected_cell = selected.get();
-        let selected_value = selected_cell.and_then(|other| game.with(|game| game.value(other)));
-        let mut classes = vec!["cell"];
+        let mut class = String::from("cell");
         if column_of(cell) % 3 == 2 && column_of(cell) != 8 {
-            classes.push("box-edge-right");
+            class.push_str(" box-edge-right");
         }
         if row_of(cell) % 3 == 2 && row_of(cell) != 8 {
-            classes.push("box-edge-bottom");
+            class.push_str(" box-edge-bottom");
         }
-        if game.with(|game| game.is_given(cell)) {
-            classes.push("given");
+        if contents.is_given {
+            class.push_str(" given");
         }
-        if settings.with(|settings| settings.show_mistakes)
-            && game.with(|game| game.is_mistake(cell))
-        {
-            classes.push("mistake");
+        if show_mistakes.get() && contents.is_mistake {
+            class.push_str(" mistake");
         }
-        if hint.with(|hint| {
-            hint.as_ref()
-                .is_some_and(|hint| hint.cells().contains(&cell))
-        }) {
-            classes.push("hinted");
+        if hinted.with(|hinted| hinted.cells.contains(&cell)) {
+            class.push_str(" hinted");
         }
-        if hint.with(|hint| {
-            hint.as_ref()
-                .is_some_and(|hint| hint.target_cells().contains(&cell))
-        }) {
-            classes.push("hint-target");
+        if hinted.with(|hinted| hinted.targets.contains(&cell)) {
+            class.push_str(" hint-target");
         }
         if selected_cell == Some(cell) {
-            classes.push("selected");
+            class.push_str(" selected");
         } else if selected_cell.is_some_and(|other| sees(cell, other)) {
-            classes.push("related");
+            class.push_str(" related");
         }
-        if selected_value.is_some() && value() == selected_value {
-            classes.push("same-number");
+        let selected_value = selected_value.get();
+        if selected_value.is_some() && contents.value == selected_value {
+            class.push_str(" same-number");
         }
-        classes.join(" ")
-    };
+        class
+    });
     let label = move || {
-        let pencil_marks: Vec<String> = (1..=9)
-            .filter(|digit| game.with(|game| game.pencil_marks(cell)) & digit_bit(*digit) != 0)
+        let CellContents {
+            value,
+            pencil_marks,
+            ..
+        } = contents.get();
+        let notes: Vec<String> = (1..=9)
+            .filter(|digit| pencil_marks & digit_bit(*digit) != 0)
             .map(|digit| digit.to_string())
             .collect();
-        let contents = match value() {
+        let description = match value {
             Some(digit) => digit.to_string(),
-            None if pencil_marks.is_empty() => "empty".to_string(),
-            None => format!("empty, notes {}", pencil_marks.join(" ")),
+            None if notes.is_empty() => "empty".to_string(),
+            None => format!("empty, notes {}", notes.join(" ")),
         };
         format!(
-            "Row {}, column {}, {contents}",
+            "Row {}, column {}, {description}",
             row_of(cell) + 1,
             column_of(cell) + 1
         )
@@ -87,26 +132,33 @@ fn BoardCell(
 
     view! {
         <button class=class aria-label=label on:click=move |_| selected.set(Some(cell))>
-            {move || match value() {
-                Some(digit) => digit.to_string().into_any(),
-                None => view! { <PencilMarks cell game /> }.into_any(),
+            {move || {
+                let CellContents {
+                    value,
+                    pencil_marks,
+                    ..
+                } = contents.get();
+                match value {
+                    Some(digit) => digit.to_string().into_any(),
+                    None => pencil_marks_view(pencil_marks).into_any(),
+                }
             }}
         </button>
     }
 }
 
-#[component]
-fn PencilMarks(cell: Cell, game: RwSignal<Game>) -> impl IntoView {
-    let marks = move || game.with(|game| game.pencil_marks(cell));
-    view! {
-        <span class="pencil-marks" aria-hidden="true">
-            {(1..=9)
-                .map(|digit| {
-                    view! {
-                        <span>{move || (marks() & digit_bit(digit) != 0).then_some(digit)}</span>
-                    }
-                })
-                .collect_view()}
-        </span>
-    }
+/// Drawn whole when the marks change rather than as 9 reactive spans per cell,
+/// and left out entirely when a cell has no marks.
+fn pencil_marks_view(pencil_marks: DigitSet) -> impl IntoView {
+    (pencil_marks != 0).then(|| {
+        view! {
+            <span class="pencil-marks" aria-hidden="true">
+                {(1..=9)
+                    .map(|digit| {
+                        view! { <span>{(pencil_marks & digit_bit(digit) != 0).then_some(digit)}</span> }
+                    })
+                    .collect_view()}
+            </span>
+        }
+    })
 }
