@@ -1,0 +1,62 @@
+mod common;
+
+use common::{EASY_PUZZLE, EASY_SOLUTION, grid};
+use sudoku_core::{Difficulty, Game, PuzzleBank};
+
+fn new_game() -> Game {
+    Game::new(grid(EASY_PUZZLE), Difficulty::Easy)
+}
+
+fn fill_in_solution(game: &mut Game) {
+    let solution = grid(EASY_SOLUTION);
+    (0..81).for_each(|cell| game.enter(cell, solution.get(cell)));
+}
+
+#[test]
+fn entering_every_correct_number_solves_the_puzzle() {
+    let mut game = new_game();
+    assert!(!game.is_solved());
+    fill_in_solution(&mut game);
+    assert!(game.is_solved());
+}
+
+#[test]
+fn givens_cannot_be_changed() {
+    let mut game = new_game();
+    game.enter(0, 9);
+    game.erase(0);
+    assert_eq!(game.value(0), Some(5));
+}
+
+#[test]
+fn a_wrong_number_is_a_mistake() {
+    let mut game = new_game();
+    game.enter(2, 1);
+    assert!(game.is_mistake(2));
+    game.enter(2, 4);
+    assert!(!game.is_mistake(2));
+}
+
+#[test]
+fn a_solved_puzzle_is_locked() {
+    let mut game = new_game();
+    fill_in_solution(&mut game);
+    game.erase(2);
+    assert!(game.is_solved());
+}
+
+#[test]
+fn games_survive_saving_and_loading() {
+    let mut game = new_game();
+    game.enter(2, 4);
+    let saved = serde_json::to_string(&game).unwrap();
+    assert_eq!(serde_json::from_str::<Game>(&saved).unwrap(), game);
+}
+
+#[test]
+fn puzzle_bank_survives_saving_and_loading() {
+    let mut bank = PuzzleBank::default();
+    bank.add(Difficulty::Easy, grid(EASY_PUZZLE));
+    let saved = serde_json::to_string(&bank).unwrap();
+    assert_eq!(serde_json::from_str::<PuzzleBank>(&saved).unwrap(), bank);
+}

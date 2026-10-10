@@ -1,0 +1,15 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+sudoku-core = { path = "crates/sudoku-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

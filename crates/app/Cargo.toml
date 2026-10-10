@@ -1,0 +1,14 @@
+[package]
+name = "sudokuformom"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sudoku-core.workspace = true
+serde_json.workspace = true
+leptos = { version = "0.8", features = ["csr"] }
+console_error_panic_hook = "0.1"
+js-sys = "0.3"
+
+[lints]
+workspace = true
