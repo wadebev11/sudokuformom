@@ -18,6 +18,17 @@
   --muted: #6b6f76;
   --hint: #e09b1a;
   --hint-target: #fbeacb;
+  --board-surface: rgb(255 255 255 / 82%);
+  --bamboo-stalk: #e1e5d3;
+  --bamboo-node: #d3dac2;
+  --bamboo-leaf: #dbe2cb;
+  --panda-fur: #fdfcf9;
+  --panda-outline: #e4e0d6;
+  --panda-patch: #c9c5bc;
+  --panda-eye: #fdfcf9;
+  --panda-line: #c9c5bc;
+  --panda-awake-display: inline;
+  --panda-asleep-display: none;
   color-scheme: light;
 }
 
@@ -42,6 +53,15 @@
     --muted: #9ba0a8;
     --hint: #f2b84b;
     --hint-target: #4a3a1a;
+    --board-surface: rgb(31 34 40 / 82%);
+    --bamboo-stalk: #1e2620;
+    --bamboo-node: #252e27;
+    --bamboo-leaf: #1f2721;
+    --panda-fur: #24272d;
+    --panda-patch: #0f1013;
+    --panda-line: #3a3e46;
+    --panda-awake-display: none;
+    --panda-asleep-display: inline;
     color-scheme: dark;
   }
 }
@@ -67,6 +87,15 @@
   --muted: #9ba0a8;
   --hint: #f2b84b;
   --hint-target: #4a3a1a;
+  --board-surface: rgb(31 34 40 / 82%);
+  --bamboo-stalk: #1e2620;
+  --bamboo-node: #252e27;
+  --bamboo-leaf: #1f2721;
+  --panda-fur: #24272d;
+  --panda-patch: #0f1013;
+  --panda-line: #3a3e46;
+  --panda-awake-display: none;
+  --panda-asleep-display: inline;
   color-scheme: dark;
 }
 
@@ -91,6 +120,7 @@ button {
 }
 
 main {
+  position: relative;
   max-width: 520px;
   margin: 0 auto;
   padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
@@ -128,14 +158,14 @@ header button,
   border: 2px solid var(--line-strong);
   border-radius: 6px;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--board-surface);
 }
 
 .cell {
   border: none;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  background: transparent;
   color: var(--entry);
   font-size: clamp(1.3rem, 6.5vw, 2rem);
   padding: 0;
@@ -443,4 +473,83 @@ header button.link {
 .dialog button.danger {
   background: var(--mistake);
   color: var(--surface);
+}
+
+.scenery {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bamboo {
+  position: absolute;
+  bottom: 0;
+  width: min(30vw, 160px);
+  height: 100%;
+}
+
+.bamboo.left {
+  left: 0;
+}
+
+.bamboo.right {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+.bamboo-stalk {
+  fill: var(--bamboo-stalk);
+}
+
+.bamboo-node {
+  fill: var(--bamboo-node);
+}
+
+.bamboo-leaf {
+  fill: var(--bamboo-leaf);
+}
+
+.panda {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  width: min(30vw, 150px);
+}
+
+.panda-awake {
+  display: var(--panda-awake-display);
+}
+
+.panda-asleep {
+  display: var(--panda-asleep-display);
+}
+
+.panda-fur {
+  fill: var(--panda-fur);
+  stroke: var(--panda-outline);
+  stroke-width: 1.5;
+}
+
+.panda-sketch {
+  fill: var(--panda-fur);
+  stroke: var(--panda-line);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.panda-patch {
+  fill: var(--panda-patch);
+}
+
+.panda-eye {
+  fill: var(--panda-eye);
+}
+
+.panda-line {
+  fill: none;
+  stroke: var(--panda-line);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }

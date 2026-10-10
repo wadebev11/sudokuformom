@@ -11,6 +11,7 @@ use crate::format::clock;
 use crate::hint_panel::HintPanel;
 use crate::new_game_menu::NewGameMenu;
 use crate::number_pad::NumberPad;
+use crate::scenery::Scenery;
 use crate::settings::{Settings, SettingsMenu};
 use crate::stats_menu::StatsMenu;
 use crate::storage::{self, ELAPSED_KEY, GAME_KEY, PLAYED_KEY, SETTINGS_KEY, STATS_KEY};
@@ -98,6 +99,7 @@ pub fn App() -> impl IntoView {
     let close_dialog = Callback::new(move |_| dialog.set(Dialog::None));
 
     view! {
+        <Scenery />
         <main>
             <header>
                 <h1>"Sudoku for Mom"</h1>

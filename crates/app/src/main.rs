@@ -6,6 +6,7 @@ mod hint_panel;
 mod modal;
 mod new_game_menu;
 mod number_pad;
+mod scenery;
 mod settings;
 mod stats_menu;
 mod storage;
