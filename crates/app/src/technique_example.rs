@@ -17,8 +17,12 @@ struct Example {
 fn example(technique: Technique) -> Example {
     match technique {
         Technique::HiddenSingle => Example {
-            rows: &["5 {28} {268}", "=4* 3 7", "1 {26} 9"],
-            caption: "No other cell in this box has a 4 in its notes, so the 4 goes here.",
+            rows: &[
+                "5 . . . . 4* . . .",
+                "=4 3 7 . . . . . .",
+                "1 . 9 . . . . 4* .",
+            ],
+            caption: "The 4s in the top and bottom rows rule out the other empty cells in the left box, so its 4 goes here.",
         },
         Technique::NakedSingle => Example {
             rows: &[
@@ -39,8 +43,8 @@ fn example(technique: Technique) -> Example {
         Technique::BoxLineReduction => Example {
             rows: &[
                 "{38}* {13}* 5 2 7 9 4 6 {18}",
-                "{6-3} . . . . . . . .",
-                ". {2-3} . . . . . . .",
+                ". . . . . . . 3 .",
+                "{6-3} {2-3} . . . . . . .",
             ],
             caption: "In the top row, 3 can only go in the left box. So the rest of that box can't be 3.",
         },
