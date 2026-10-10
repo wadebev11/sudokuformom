@@ -58,3 +58,6 @@ cd crates/app && trunk build --release
 Upload everything in `crates/app/dist/`. URLs are relative, so it works from a
 domain root or a subpath such as a GitHub Pages project site. The host must
 serve over HTTPS for the offline support to work.
+
+Pushes to `master` build and deploy automatically to
+<https://wadebev11.github.io/sudokuformom/> via `.github/workflows/pages.yml`.
