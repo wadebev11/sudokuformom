@@ -490,6 +490,7 @@ header button.link {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  contain: strict;
 }
 
 .bamboo {
