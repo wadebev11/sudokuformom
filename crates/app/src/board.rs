@@ -15,6 +15,17 @@ struct CellContents {
     is_mistake: bool,
 }
 
+#[derive(Clone, Copy, PartialEq)]
+struct CellHighlight {
+    is_given: bool,
+    is_mistake: bool,
+    is_hinted: bool,
+    is_hint_target: bool,
+    is_selected: bool,
+    is_related: bool,
+    is_same_number: bool,
+}
+
 /// The cells the shown Hint points at, worked out once per Hint rather than once per cell.
 #[derive(Clone, Default, PartialEq)]
 struct HintedCells {
@@ -74,35 +85,41 @@ fn BoardCell(
             is_mistake: game.is_mistake(cell),
         })
     });
-    // A memo, so the page is only touched for cells whose classes really change.
-    let class = Memo::new(move |_| {
+    // A memo of flags rather than of the class text, so selecting a cell doesn't
+    // build class text for the cells whose highlighting stays the same.
+    let highlight = Memo::new(move |_| {
         let contents = contents.get();
         let selected_cell = selected.get();
-        let mut class = String::from("cell");
-        class.push_str(&edge_classes(row_of(cell), column_of(cell), 8, 8));
-        if contents.is_given {
-            class.push_str(" given");
-        }
-        if show_mistakes.get() && contents.is_mistake {
-            class.push_str(" mistake");
-        }
-        if hinted.with(|hinted| hinted.cells.contains(&cell)) {
-            class.push_str(" hinted");
-        }
-        if hinted.with(|hinted| hinted.targets.contains(&cell)) {
-            class.push_str(" hint-target");
-        }
-        if selected_cell == Some(cell) {
-            class.push_str(" selected");
-        } else if selected_cell.is_some_and(|other| sees(cell, other)) {
-            class.push_str(" related");
-        }
         let selected_value = selected_value.get();
-        if selected_value.is_some() && contents.value == selected_value {
-            class.push_str(" same-number");
+        CellHighlight {
+            is_given: contents.is_given,
+            is_mistake: show_mistakes.get() && contents.is_mistake,
+            is_hinted: hinted.with(|hinted| hinted.cells.contains(&cell)),
+            is_hint_target: hinted.with(|hinted| hinted.targets.contains(&cell)),
+            is_selected: selected_cell == Some(cell),
+            is_related: selected_cell.is_some_and(|other| other != cell && sees(cell, other)),
+            is_same_number: selected_value.is_some() && contents.value == selected_value,
+        }
+    });
+    let edges = edge_classes(row_of(cell), column_of(cell), 8, 8);
+    let class = move || {
+        let highlight = highlight.get();
+        let mut class = format!("cell{edges}");
+        for (applies, name) in [
+            (highlight.is_given, " given"),
+            (highlight.is_mistake, " mistake"),
+            (highlight.is_hinted, " hinted"),
+            (highlight.is_hint_target, " hint-target"),
+            (highlight.is_selected, " selected"),
+            (highlight.is_related, " related"),
+            (highlight.is_same_number, " same-number"),
+        ] {
+            if applies {
+                class.push_str(name);
+            }
         }
         class
-    });
+    };
     let label = move || {
         let CellContents {
             value,
