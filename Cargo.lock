@@ -1584,8 +1584,10 @@ dependencies = [
  "console_error_panic_hook",
  "js-sys",
  "leptos",
+ "serde",
  "serde_json",
  "sudoku-core",
+ "web-sys",
 ]
 
 [[package]]

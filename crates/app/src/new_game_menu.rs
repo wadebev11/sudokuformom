@@ -2,11 +2,18 @@ use leptos::prelude::*;
 use sudoku_core::Difficulty;
 
 #[component]
-pub fn NewGameMenu(on_choose: Callback<Difficulty>, on_cancel: Callback<()>) -> impl IntoView {
+pub fn NewGameMenu(
+    progress_will_be_lost: Signal<bool>,
+    on_choose: Callback<Difficulty>,
+    on_cancel: Callback<()>,
+) -> impl IntoView {
     view! {
         <div class="overlay">
             <div class="dialog" role="dialog" aria-label="New game">
                 <h2>"New game"</h2>
+                <Show when=move || progress_will_be_lost.get()>
+                    <p class="warning">"Your current puzzle will be lost."</p>
+                </Show>
                 {Difficulty::ALL
                     .map(|difficulty| {
                         view! {

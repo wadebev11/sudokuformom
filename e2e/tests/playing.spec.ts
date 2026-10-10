@@ -22,9 +22,13 @@ test("a wrong number shows in red until it is erased", async ({ page }) => {
 
 test("choosing a difficulty starts a new puzzle at that level", async ({ page }) => {
   await page.goto("/");
+  const { index, answer } = await emptyCellAndAnswer(page);
+  await enter(page, index, answer);
   const before = await readBoard(page);
   await page.getByRole("button", { name: "New game" }).click();
-  await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Hard" }).click();
+  const menu = page.getByRole("dialog", { name: "New game" });
+  await expect(menu).toContainText("Your current puzzle will be lost.");
+  await menu.getByRole("button", { name: "Hard" }).click();
   await expect(page.getByText("Hard", { exact: true })).toBeVisible();
   expect(await readBoard(page)).not.toEqual(before);
 });

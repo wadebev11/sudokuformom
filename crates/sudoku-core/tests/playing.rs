@@ -105,3 +105,28 @@ fn undo_and_redo_step_through_changes() {
     game.enter(3, 6);
     assert!(!game.can_redo());
 }
+
+#[test]
+fn new_games_do_not_repeat_a_puzzle_until_all_have_been_played() {
+    let mut bank = PuzzleBank::default();
+    let puzzle = grid(EASY_PUZZLE);
+    let mut other = puzzle;
+    other.set(2, 4);
+    bank.add(Difficulty::Easy, puzzle);
+    bank.add(Difficulty::Easy, other);
+    let mut played = sudoku_core::PlayedPuzzles::default();
+
+    let first = bank.pick_unplayed(Difficulty::Easy, &mut played, 0.0);
+    let second = bank.pick_unplayed(Difficulty::Easy, &mut played, 0.0);
+    assert_ne!(first, second);
+    let third = bank.pick_unplayed(Difficulty::Easy, &mut played, 0.99);
+    assert!([puzzle, other].contains(&third));
+}
+
+#[test]
+fn a_fresh_game_has_no_progress_to_lose() {
+    let mut game = new_game();
+    assert!(!game.has_progress());
+    game.toggle_pencil_mark(2, 4);
+    assert!(game.has_progress());
+}

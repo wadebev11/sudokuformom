@@ -8,7 +8,7 @@ pub mod hint;
 pub mod solver;
 pub mod techniques;
 
-pub use bank::PuzzleBank;
+pub use bank::{PlayedPuzzles, PuzzleBank};
 pub use game::Game;
 pub use grid::{Cell, Digit, Grid};
 pub use techniques::{Difficulty, Step, Technique, grade};

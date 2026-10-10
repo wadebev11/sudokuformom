@@ -3,15 +3,18 @@ use sudoku_core::grid::{CELL_COUNT, column_of, digit_bit, row_of, sees};
 use sudoku_core::hint::Hint;
 use sudoku_core::{Cell, Game};
 
+use crate::settings::Settings;
+
 #[component]
 pub fn Board(
     game: RwSignal<Game>,
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
+    settings: RwSignal<Settings>,
 ) -> impl IntoView {
     view! {
         <div class="board" role="group" aria-label="Sudoku board">
-            {(0..CELL_COUNT).map(|cell| view! { <BoardCell cell game selected hint /> }).collect_view()}
+            {(0..CELL_COUNT).map(|cell| view! { <BoardCell cell game selected hint settings /> }).collect_view()}
         </div>
     }
 }
@@ -22,6 +25,7 @@ fn BoardCell(
     game: RwSignal<Game>,
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
+    settings: RwSignal<Settings>,
 ) -> impl IntoView {
     let value = move || game.with(|game| game.value(cell));
     let class = move || {
@@ -37,7 +41,9 @@ fn BoardCell(
         if game.with(|game| game.is_given(cell)) {
             classes.push("given");
         }
-        if game.with(|game| game.is_mistake(cell)) {
+        if settings.with(|settings| settings.show_mistakes)
+            && game.with(|game| game.is_mistake(cell))
+        {
             classes.push("mistake");
         }
         if hint.with(|hint| {

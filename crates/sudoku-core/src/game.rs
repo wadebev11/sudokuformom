@@ -154,6 +154,12 @@ impl Game {
         }
     }
 
+    /// True once the player has entered anything, so starting over would lose work.
+    pub fn has_progress(&self) -> bool {
+        self.marks.entries.filled_count() > 0
+            || self.marks.pencil_marks.iter().any(|marks| *marks != 0)
+    }
+
     pub fn is_mistake(&self, cell: Cell) -> bool {
         !self.marks.entries.is_empty(cell)
             && self.marks.entries.get(cell) != self.solution.get(cell)
