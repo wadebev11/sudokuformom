@@ -1,0 +1,3 @@
+[build]
+# Relative URLs let the dist folder be hosted from any path, e.g. a GitHub Pages project site.
+public_url = "./"
