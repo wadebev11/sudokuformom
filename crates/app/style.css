@@ -22,7 +22,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #16181c;
     --surface: #1f2228;
     --text: #e8e6e1;
@@ -44,6 +44,30 @@
     --hint-target: #4a3a1a;
     color-scheme: dark;
   }
+}
+
+/* Repeats the block above: CSS can't share declarations between a media query and a plain selector. */
+:root[data-theme="dark"] {
+  --background: #16181c;
+  --surface: #1f2228;
+  --text: #e8e6e1;
+  --given: #e8e6e1;
+  --entry: #8fb2ff;
+  --mistake: #ff8a80;
+  --mistake-background: #4a2222;
+  --line: #3a3e46;
+  --line-strong: #9a9a9a;
+  --related: #282c33;
+  --selected: #2f4a80;
+  --same-number: #263a60;
+  --button: #2b2f37;
+  --button-pressed: #383d47;
+  --accent: #8fb2ff;
+  --accent-text: #10131a;
+  --muted: #9ba0a8;
+  --hint: #f2b84b;
+  --hint-target: #4a3a1a;
+  color-scheme: dark;
 }
 
 * {
@@ -398,4 +422,16 @@ header button.link {
 .setting input {
   width: 24px;
   height: 24px;
+}
+
+.setting-group {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.setting-group legend {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 8px 0 0;
 }

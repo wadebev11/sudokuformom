@@ -58,6 +58,12 @@ pub fn App() -> impl IntoView {
     Effect::new(move || storage::save(ELAPSED_KEY, &elapsed_seconds.get()));
     Effect::new(move || played.with(|played| storage::save(PLAYED_KEY, played)));
     Effect::new(move || settings.with(|settings| storage::save(SETTINGS_KEY, settings)));
+    Effect::new(move || {
+        let theme = settings.with(|settings| settings.theme);
+        if let Some(root) = document().document_element() {
+            let _ = root.set_attribute("data-theme", theme.attribute_value());
+        }
+    });
     Effect::new(move || stats.with(|stats| storage::save(STATS_KEY, stats)));
 
     // Records a solve only when it happens, not when an already solved game is reopened.

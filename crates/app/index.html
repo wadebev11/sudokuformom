@@ -16,6 +16,9 @@
     <link data-trunk rel="copy-file" href="sw.js" />
     <link data-trunk rel="copy-dir" href="icons" />
     <script>
+      try {
+        document.documentElement.dataset.theme = JSON.parse(localStorage.getItem("settings")).theme;
+      } catch {}
       if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
     </script>
   </head>
