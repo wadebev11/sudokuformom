@@ -5,7 +5,7 @@ use sudoku_core::techniques::LogicBoard;
 use sudoku_core::{Difficulty, grade};
 
 #[test]
-fn generated_puzzles_have_one_solution_and_the_requested_difficulty() {
+fn generated_puzzles_have_one_solution_the_requested_difficulty_and_enough_givens() {
     for difficulty in [Difficulty::Easy, Difficulty::Medium, Difficulty::Expert] {
         let mut rng = StdRng::seed_from_u64(7);
         let puzzle = std::iter::repeat_with(|| puzzle_gen::generate(difficulty, &mut rng))
@@ -14,6 +14,7 @@ fn generated_puzzles_have_one_solution_and_the_requested_difficulty() {
             .unwrap();
         assert!(has_unique_solution(&puzzle));
         assert_eq!(grade(&puzzle), Some(difficulty));
+        assert!(puzzle.filled_count() >= puzzle_gen::minimum_givens(difficulty));
     }
 }
 

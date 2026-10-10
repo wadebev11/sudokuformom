@@ -2,7 +2,9 @@
 //! solved board for as long as the puzzle stays solvable with the known
 //! Techniques, then Givens are added back until it eases to the target.
 //! Carving straight to a target rarely lands on Hard, because removing one
-//! more number usually jumps a puzzle from Medium to beyond Hard.
+//! more number usually jumps a puzzle from Medium to beyond Hard. Easier
+//! puzzles then get more Givens back, since a sparse board feels harder than
+//! the Techniques it needs.
 
 use rand::Rng;
 use rand::seq::SliceRandom;
@@ -54,11 +56,40 @@ fn ease(puzzle: &mut Grid, solution: &Grid, target: Difficulty, rng: &mut impl R
     }
 }
 
+pub fn minimum_givens(difficulty: Difficulty) -> usize {
+    match difficulty {
+        Difficulty::Easy => 36,
+        Difficulty::Medium => 30,
+        Difficulty::Hard | Difficulty::Expert => 0,
+    }
+}
+
+fn add_givens_to_minimum(
+    puzzle: &mut Grid,
+    solution: &Grid,
+    target: Difficulty,
+    rng: &mut impl Rng,
+) {
+    let minimum = minimum_givens(target);
+    for cell in shuffled_cells(rng) {
+        if puzzle.filled_count() < minimum && puzzle.is_empty(cell) {
+            puzzle.set(cell, solution.get(cell));
+            if grade(puzzle) != Some(target) {
+                puzzle.set(cell, 0);
+            }
+        }
+    }
+}
+
 /// One attempt at a puzzle of the target Difficulty. Returns None when the
-/// attempt ends up easier than the target.
+/// attempt ends up easier than the target or can't reach its minimum Givens.
 pub fn generate(target: Difficulty, rng: &mut impl Rng) -> Option<Grid> {
     let solution = random_solution(rng);
     let mut puzzle = carve(&solution, rng);
     ease(&mut puzzle, &solution, target, rng);
-    (grade(&puzzle) == Some(target) && has_unique_solution(&puzzle)).then_some(puzzle)
+    add_givens_to_minimum(&mut puzzle, &solution, target, rng);
+    let is_wanted = grade(&puzzle) == Some(target)
+        && puzzle.filled_count() >= minimum_givens(target)
+        && has_unique_solution(&puzzle);
+    is_wanted.then_some(puzzle)
 }

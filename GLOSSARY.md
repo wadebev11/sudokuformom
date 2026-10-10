@@ -47,7 +47,7 @@ _Avoid_: Error, wrong answer
 ### Playing
 
 **Difficulty**:
-One of four levels a puzzle belongs to: Easy, Medium, Hard, Expert. It is decided by the hardest Technique needed to solve the puzzle, not by how many Givens it has.
+One of four levels a puzzle belongs to: Easy, Medium, Hard, Expert. It is decided by the hardest Technique needed to solve the puzzle, not by how many Givens it has. Easy and Medium puzzles also start with a minimum number of Givens, so they don't feel sparse.
 _Avoid_: Level, mode
 
 **Hint**:
