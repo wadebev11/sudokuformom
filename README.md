@@ -46,7 +46,7 @@ The bank is committed, so this is only needed after changing the Techniques or
 the generator. It takes about 20 minutes on 6 cores, mostly finding Hard puzzles.
 
 ```sh
-cargo run --release -p puzzle-gen   # writes crates/app/puzzles.json
+cargo run --release -p puzzle-gen   # writes crates/app/puzzles.bin
 ```
 
 ## Build and deploy

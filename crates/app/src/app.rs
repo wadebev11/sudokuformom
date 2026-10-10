@@ -1,4 +1,3 @@
-use std::sync::LazyLock;
 use std::time::Duration;
 
 use leptos::prelude::*;
@@ -16,10 +15,7 @@ use crate::settings::{Settings, SettingsMenu};
 use crate::stats_menu::StatsMenu;
 use crate::storage::{self, ELAPSED_KEY, GAME_KEY, PLAYED_KEY, SETTINGS_KEY, STATS_KEY};
 
-static PUZZLE_BANK: LazyLock<PuzzleBank> = LazyLock::new(|| {
-    serde_json::from_str(include_str!("../puzzles.json"))
-        .expect("bundled puzzle bank is valid JSON")
-});
+static PUZZLE_BANK: PuzzleBank = PuzzleBank::new(include_bytes!("../puzzles.bin"));
 
 fn new_game(difficulty: Difficulty, played: &mut PlayedPuzzles) -> Game {
     let puzzle = PUZZLE_BANK.pick_unplayed(difficulty, played, js_sys::Math::random());

@@ -1,6 +1,8 @@
 mod common;
 
-use common::{EASY_PUZZLE, EASY_SOLUTION, grid};
+use std::collections::BTreeMap;
+
+use common::{EASY_PUZZLE, EASY_SOLUTION, HARD_PUZZLE, grid};
 use sudoku_core::{Difficulty, Game, PuzzleBank};
 
 fn new_game() -> Game {
@@ -57,11 +59,23 @@ fn games_survive_saving_and_loading() {
 }
 
 #[test]
-fn puzzle_bank_survives_saving_and_loading() {
-    let mut bank = PuzzleBank::default();
-    bank.add(Difficulty::Easy, grid(EASY_PUZZLE));
-    let saved = serde_json::to_string(&bank).unwrap();
-    assert_eq!(serde_json::from_str::<PuzzleBank>(&saved).unwrap(), bank);
+fn puzzle_bank_survives_packing_and_unpacking() {
+    let puzzles = BTreeMap::from([
+        (
+            Difficulty::Easy,
+            vec![grid(EASY_PUZZLE), grid(EASY_SOLUTION)],
+        ),
+        (Difficulty::Hard, vec![grid(HARD_PUZZLE)]),
+    ]);
+    let packed = PuzzleBank::pack(&puzzles);
+    let bank = PuzzleBank::new(&packed);
+    for difficulty in Difficulty::ALL {
+        let unpacked: Vec<_> = bank.puzzles(difficulty).collect();
+        assert_eq!(
+            unpacked,
+            puzzles.get(&difficulty).cloned().unwrap_or_default()
+        );
+    }
 }
 
 fn marks(game: &Game, cell: usize) -> Vec<u8> {
@@ -108,12 +122,11 @@ fn undo_and_redo_step_through_changes() {
 
 #[test]
 fn new_games_do_not_repeat_a_puzzle_until_all_have_been_played() {
-    let mut bank = PuzzleBank::default();
     let puzzle = grid(EASY_PUZZLE);
     let mut other = puzzle;
     other.set(2, 4);
-    bank.add(Difficulty::Easy, puzzle);
-    bank.add(Difficulty::Easy, other);
+    let packed = PuzzleBank::pack(&BTreeMap::from([(Difficulty::Easy, vec![puzzle, other])]));
+    let bank = PuzzleBank::new(&packed);
     let mut played = sudoku_core::PlayedPuzzles::default();
 
     let first = bank.pick_unplayed(Difficulty::Easy, &mut played, 0.0);

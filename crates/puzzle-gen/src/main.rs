@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use clap::Parser;
@@ -9,8 +10,8 @@ use sudoku_core::{Difficulty, PuzzleBank};
 /// Generates the puzzle bank that ships with the app.
 #[derive(Parser)]
 struct Arguments {
-    /// Where to write the puzzle bank JSON.
-    #[arg(long, default_value = "crates/app/puzzles.json")]
+    /// Where to write the packed puzzle bank.
+    #[arg(long, default_value = "crates/app/puzzles.bin")]
     out: PathBuf,
     /// Seed for the random generator, so runs are reproducible.
     #[arg(long, default_value_t = 1)]
@@ -50,17 +51,23 @@ const ATTEMPTS_PER_BATCH: u64 = 256;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arguments = Arguments::parse();
-    let (mut bank, difficulties) = if arguments.only.is_empty() {
-        (PuzzleBank::default(), Difficulty::ALL.to_vec())
+    let mut puzzles = BTreeMap::new();
+    let difficulties = if arguments.only.is_empty() {
+        Difficulty::ALL.to_vec()
     } else {
-        let existing = serde_json::from_str(&std::fs::read_to_string(&arguments.out)?)?;
-        (existing, arguments.only.clone())
+        let existing_bytes = std::fs::read(&arguments.out)?;
+        let existing = PuzzleBank::new(&existing_bytes);
+        for difficulty in Difficulty::ALL {
+            puzzles.insert(difficulty, existing.puzzles(difficulty).collect());
+        }
+        arguments.only.clone()
     };
     for difficulty in difficulties {
-        bank.remove(difficulty);
         let wanted = arguments.count(difficulty);
+        let found: &mut Vec<_> = puzzles.entry(difficulty).or_default();
+        found.clear();
         let mut attempts = 0;
-        while bank.puzzles(difficulty).len() < wanted {
+        while found.len() < wanted {
             // Each attempt gets its own seed, so the output doesn't depend on thread scheduling.
             let batch: Vec<_> = (attempts..attempts + ATTEMPTS_PER_BATCH)
                 .into_par_iter()
@@ -71,20 +78,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })
                 .collect();
             attempts += ATTEMPTS_PER_BATCH;
-            batch
-                .into_iter()
-                .flatten()
-                .take(wanted - bank.puzzles(difficulty).len())
-                .for_each(|puzzle| bank.add(difficulty, puzzle));
-            eprint!(
-                "\r{}: {}/{wanted}",
-                difficulty.name(),
-                bank.puzzles(difficulty).len()
-            );
+            let still_wanted = wanted - found.len();
+            found.extend(batch.into_iter().flatten().take(still_wanted));
+            eprint!("\r{}: {}/{wanted}", difficulty.name(), found.len());
         }
         eprintln!(" from {attempts} attempts");
     }
-    std::fs::write(&arguments.out, serde_json::to_string(&bank)?)?;
+    std::fs::write(&arguments.out, PuzzleBank::pack(&puzzles))?;
     eprintln!("Wrote {}", arguments.out.display());
     Ok(())
 }

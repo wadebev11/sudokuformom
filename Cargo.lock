@@ -1166,7 +1166,6 @@ dependencies = [
  "clap",
  "rand",
  "rayon",
- "serde_json",
  "sudoku-core",
 ]
 
