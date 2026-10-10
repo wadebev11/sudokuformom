@@ -118,7 +118,6 @@ pub fn App() -> impl IntoView {
                 <button on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
             </div>
             <Board game selected hint settings />
-            <HintPanel hint />
             <NumberPad
                 game
                 selected
@@ -128,6 +127,7 @@ pub fn App() -> impl IntoView {
                     dialog.get() == Dialog::None && !celebration_open.get()
                 })
             />
+            <HintPanel hint />
             <Show when=move || celebration_open.get()>
                 <Celebration
                     game
