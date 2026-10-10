@@ -10,7 +10,7 @@ leptos = { version = "0.8", features = ["csr"] }
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
 serde.workspace = true
-web-sys = { version = "0.3", features = ["Storage", "Window"] }
+web-sys = { version = "0.3", features = ["Document", "Storage", "Window"] }
 
 [lints]
 workspace = true

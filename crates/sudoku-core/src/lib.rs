@@ -6,6 +6,7 @@ pub mod game;
 pub mod grid;
 pub mod hint;
 pub mod solver;
+pub mod stats;
 pub mod techniques;
 
 pub use bank::{PlayedPuzzles, PuzzleBank};

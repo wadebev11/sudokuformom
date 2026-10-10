@@ -9,10 +9,10 @@ export const button = (page: Page, name: string) => page.getByRole("button", { n
 
 /** Reads the board the way a player sees it: one entry per cell, 0 when empty. */
 export async function readBoard(page: Page): Promise<number[]> {
+  await expect(board(page).getByRole("button")).toHaveCount(81);
   const labels = await board(page).getByRole("button").evaluateAll((cells) =>
     cells.map((cell) => cell.getAttribute("aria-label") ?? ""),
   );
-  expect(labels).toHaveLength(81);
   return labels.map((label) => Number(label.split(", ")[2]) || 0);
 }
 

@@ -1,15 +1,20 @@
 use std::sync::LazyLock;
+use std::time::Duration;
 
 use leptos::prelude::*;
 use sudoku_core::hint::Hint;
+use sudoku_core::stats::Stats;
 use sudoku_core::{Cell, Difficulty, Game, PlayedPuzzles, PuzzleBank};
 
 use crate::board::Board;
+use crate::celebration::Celebration;
+use crate::format::clock;
 use crate::hint_panel::HintPanel;
 use crate::new_game_menu::NewGameMenu;
 use crate::number_pad::NumberPad;
 use crate::settings::{Settings, SettingsMenu};
-use crate::storage::{self, GAME_KEY, PLAYED_KEY, SETTINGS_KEY};
+use crate::stats_menu::StatsMenu;
+use crate::storage::{self, GAME_KEY, PLAYED_KEY, SETTINGS_KEY, STATS_KEY};
 
 static PUZZLE_BANK: LazyLock<PuzzleBank> = LazyLock::new(|| {
     serde_json::from_str(include_str!("../puzzles.json"))
@@ -21,11 +26,18 @@ fn new_game(difficulty: Difficulty, played: &mut PlayedPuzzles) -> Game {
     Game::new(puzzle, difficulty)
 }
 
+fn app_is_on_screen() -> bool {
+    web_sys::window()
+        .and_then(|window| window.document())
+        .is_some_and(|document| !document.hidden())
+}
+
 #[derive(Clone, Copy, PartialEq)]
 enum Dialog {
     None,
     NewGame,
     Settings,
+    Stats,
 }
 
 #[component]
@@ -37,21 +49,42 @@ pub fn App() -> impl IntoView {
     );
     let played = RwSignal::new(played_puzzles);
     let settings = RwSignal::new(storage::load::<Settings>(SETTINGS_KEY).unwrap_or_default());
+    let stats = RwSignal::new(storage::load::<Stats>(STATS_KEY).unwrap_or_default());
     let selected = RwSignal::new(None::<Cell>);
     let hint = RwSignal::new(None::<Hint>);
     let dialog = RwSignal::new(Dialog::None);
+    let celebration_closed = RwSignal::new(false);
 
     Effect::new(move || game.with(|game| storage::save(GAME_KEY, game)));
     Effect::new(move || played.with(|played| storage::save(PLAYED_KEY, played)));
     Effect::new(move || settings.with(|settings| storage::save(SETTINGS_KEY, settings)));
+    Effect::new(move || stats.with(|stats| storage::save(STATS_KEY, stats)));
+
+    // Records a solve only when it happens, not when an already solved game is reopened.
+    Effect::new(move |was_solved: Option<bool>| {
+        let solved = game.with(Game::is_solved);
+        if solved && was_solved == Some(false) {
+            let (difficulty, seconds) =
+                game.with(|game| (game.difficulty(), game.elapsed_seconds()));
+            stats.update(|stats| stats.record_solve(difficulty, seconds));
+        }
+        solved
+    });
+
+    set_interval(
+        move || {
+            if app_is_on_screen() && !game.with_untracked(Game::is_solved) {
+                game.update(Game::tick);
+            }
+        },
+        Duration::from_secs(1),
+    );
 
     let start_new_game = Callback::new(move |difficulty| {
-        let fresh = played
-            .try_update(|played| new_game(difficulty, played))
-            .unwrap();
-        game.set(fresh);
+        played.update(|played| game.set(new_game(difficulty, played)));
         selected.set(None);
         hint.set(None);
+        celebration_closed.set(false);
         dialog.set(Dialog::None);
     });
     let close_dialog = Callback::new(move |_| dialog.set(Dialog::None));
@@ -60,18 +93,31 @@ pub fn App() -> impl IntoView {
         <main>
             <header>
                 <h1>"Sudoku for Mom"</h1>
-                <span class="difficulty">{move || game.with(Game::difficulty).name()}</span>
-                <button aria-label="Settings" on:click=move |_| dialog.set(Dialog::Settings)>
-                    "⚙"
+                <button class="link" on:click=move |_| dialog.set(Dialog::Stats)>
+                    "Stats"
                 </button>
-                <button on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
+                <button class="link" on:click=move |_| dialog.set(Dialog::Settings)>
+                    "Settings"
+                </button>
             </header>
+            <div class="status-bar">
+                <span class="difficulty">{move || game.with(Game::difficulty).name()}</span>
+                <span class="timer" aria-label="Time">
+                    {move || clock(game.with(Game::elapsed_seconds))}
+                </span>
+                <button on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
+            </div>
             <Board game selected hint settings />
-            <Show when=move || game.with(Game::is_solved)>
-                <p class="solved" role="status">"Solved!"</p>
-            </Show>
             <HintPanel hint />
             <NumberPad game selected hint />
+            <Show when=move || game.with(Game::is_solved) && !celebration_closed.get()>
+                <Celebration
+                    game
+                    stats
+                    on_new_game=Callback::new(move |_| dialog.set(Dialog::NewGame))
+                    on_close=Callback::new(move |_| celebration_closed.set(true))
+                />
+            </Show>
             <Show when=move || dialog.get() == Dialog::NewGame>
                 <NewGameMenu
                     progress_will_be_lost=Signal::derive(move || {
@@ -83,6 +129,9 @@ pub fn App() -> impl IntoView {
             </Show>
             <Show when=move || dialog.get() == Dialog::Settings>
                 <SettingsMenu settings on_close=close_dialog />
+            </Show>
+            <Show when=move || dialog.get() == Dialog::Stats>
+                <StatsMenu stats on_close=close_dialog />
             </Show>
         </main>
     }

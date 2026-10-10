@@ -83,7 +83,7 @@ header {
 }
 
 h1 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   margin: 0;
 }
 
@@ -218,18 +218,104 @@ header button:active {
   justify-content: center;
 }
 
-.solved {
-  margin: 0;
-  text-align: center;
-  font-size: 1.4rem;
-  font-weight: 600;
+header h1 {
+  margin-right: auto;
+}
+
+header button.link {
+  background: transparent;
   color: var(--accent);
+  padding: 8px 6px;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-bar button {
+  margin-left: auto;
+  border: none;
+  border-radius: 10px;
+  background: var(--button);
+  padding: 10px 14px;
+  font-size: 1rem;
 }
 
 .difficulty {
-  margin-right: auto;
+  font-weight: 600;
+}
+
+.timer {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.stats th,
+.stats td {
+  padding: 8px 4px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+
+.stats th[scope="row"] {
+  text-align: left;
+}
+
+.celebration .dialog {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.celebration h2 {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+.celebration-time,
+.celebration-best {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.celebration-best {
+  color: var(--muted);
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti span {
+  position: absolute;
+  top: -5%;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  animation: fall 2.8s ease-in infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(120vh) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confetti {
+    display: none;
+  }
 }
 
 .overlay {

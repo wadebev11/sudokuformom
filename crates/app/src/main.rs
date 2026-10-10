@@ -1,9 +1,12 @@
 mod app;
 mod board;
+mod celebration;
+mod format;
 mod hint_panel;
 mod new_game_menu;
 mod number_pad;
 mod settings;
+mod stats_menu;
 mod storage;
 
 fn main() {

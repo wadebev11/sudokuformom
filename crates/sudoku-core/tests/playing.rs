@@ -130,3 +130,13 @@ fn a_fresh_game_has_no_progress_to_lose() {
     game.toggle_pencil_mark(2, 4);
     assert!(game.has_progress());
 }
+
+#[test]
+fn the_clock_stops_when_the_puzzle_is_solved() {
+    let mut game = new_game();
+    game.tick();
+    game.tick();
+    fill_in_solution(&mut game);
+    game.tick();
+    assert_eq!(game.elapsed_seconds(), 2);
+}

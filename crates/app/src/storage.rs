@@ -8,6 +8,7 @@ use serde::de::DeserializeOwned;
 pub const GAME_KEY: &str = "game";
 pub const SETTINGS_KEY: &str = "settings";
 pub const PLAYED_KEY: &str = "played";
+pub const STATS_KEY: &str = "stats";
 
 fn local_storage() -> Option<web_sys::Storage> {
     web_sys::window()?.local_storage().ok()?

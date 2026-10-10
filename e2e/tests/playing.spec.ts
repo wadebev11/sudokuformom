@@ -1,14 +1,29 @@
 import { expect, test } from "@playwright/test";
 import { button, cell, emptyCellAndAnswer, enter, readBoard, solve, wrongDigit } from "./sudoku";
 
-test("filling in every number solves the puzzle", async ({ page }) => {
+test("the timer counts up while playing", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-01-01T10:00:00") });
+  await page.goto("/");
+  await page.clock.pauseAt(new Date("2026-01-01T10:00:01"));
+  await page.clock.runFor(64_000);
+  await expect(page.getByLabel("Time")).toHaveText("1:04");
+});
+
+test("solving a puzzle celebrates and counts toward stats", async ({ page }) => {
   await page.goto("/");
   const grid = await readBoard(page);
   const solution = solve(grid);
   for (let index = 0; index < 81; index++) {
     if (grid[index] === 0) await enter(page, index, solution[index]);
   }
-  await expect(page.getByRole("status")).toHaveText(/Solved/);
+  const celebration = page.getByRole("dialog", { name: "Puzzle solved" });
+  await expect(celebration.getByRole("status")).toHaveText("Solved!");
+  const time = (await celebration.innerText()).match(/Best time: (\d+:\d\d)/)![1];
+
+  await celebration.getByRole("button", { name: "Close" }).click();
+  await page.getByRole("button", { name: "Stats" }).click();
+  const easyRow = page.getByRole("dialog", { name: "Stats" }).getByRole("row", { name: /Easy/ });
+  await expect(easyRow).toHaveText(new RegExp(`Easy\\s*1\\s*${time}\\s*${time}`));
 });
 
 test("a wrong number shows in red until it is erased", async ({ page }) => {
