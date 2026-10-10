@@ -20,3 +20,17 @@ opt-level = 3
 
 [profile.dev.package.puzzle-gen]
 opt-level = 3
+
+# The app is downloaded and run on a phone, so release builds favour small size.
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.release.package.sudoku-core]
+opt-level = 3
+
+[profile.release.package.puzzle-gen]
+opt-level = 3
