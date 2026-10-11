@@ -21,6 +21,7 @@ fn prefixed(key: &str) -> String {
     format!("{KEY_PREFIX}{key}")
 }
 
+#[allow(clippy::disallowed_methods)]
 fn local_storage() -> Option<web_sys::Storage> {
     web_sys::window()?.local_storage().ok()?
 }
