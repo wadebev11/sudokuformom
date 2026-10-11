@@ -37,6 +37,7 @@ test("mistakes are not shown in red when that setting is off, even after reopeni
 
 test("hard reset erases the saved game and settings after confirming", async ({ page }) => {
   await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("other-app", "kept"));
   const { index, answer } = await emptyCellAndAnswer(page);
   await enter(page, index, answer);
   const before = await readBoard(page);
@@ -49,6 +50,7 @@ test("hard reset erases the saved game and settings after confirming", async ({ 
   expect(await readBoard(page)).not.toEqual(before);
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByLabel("Show mistakes in red")).toBeChecked();
+  expect(await page.evaluate(() => localStorage.getItem("other-app"))).toBe("kept");
 });
 
 test("cancelling a hard reset keeps everything", async ({ page }) => {

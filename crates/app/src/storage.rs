@@ -38,8 +38,18 @@ pub fn save<T: Serialize>(key: &str, value: &T) {
     }
 }
 
+/// Removes every key with this app's prefix, including ones older versions saved.
 pub fn clear_all() {
-    if let Some(storage) = local_storage() {
-        let _ = storage.clear();
+    if let Some(storage) = local_storage()
+        && let Ok(length) = storage.length()
+    {
+        // Collected first because removing a key shifts the indexes of the rest.
+        let own_keys: Vec<String> = (0..length)
+            .filter_map(|index| storage.key(index).ok().flatten())
+            .filter(|key| key.starts_with(KEY_PREFIX))
+            .collect();
+        for key in own_keys {
+            let _ = storage.remove_item(&key);
+        }
     }
 }
