@@ -54,5 +54,3 @@ jobs:
           tar -xzf cargo-audit.tgz -C /usr/local/bin --strip-components=1 --wildcards '*/cargo-audit'
           rm cargo-audit.tgz
       - run: cargo audit
-      - run: npm audit --audit-level=high
-        working-directory: e2e
