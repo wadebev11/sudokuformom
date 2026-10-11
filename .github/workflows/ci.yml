@@ -15,6 +15,7 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           cache-name: lint
+          components: clippy,rustfmt
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo clippy --target wasm32-unknown-unknown -p sudokuformom -- -D warnings

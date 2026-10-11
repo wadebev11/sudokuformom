@@ -5,14 +5,19 @@ inputs:
   cache-name:
     description: Keeps jobs that build different things from overwriting each other's cached target folder.
     required: true
+  components:
+    description: Extra rustup components to install, comma separated.
+    default: ""
 
 runs:
   using: composite
   steps:
     - name: Install Rust
       shell: bash
+      env:
+        COMPONENTS: ${{ inputs.components }}
       run: |
-        rustup toolchain install stable --profile minimal --component clippy,rustfmt --target wasm32-unknown-unknown
+        rustup toolchain install stable --profile minimal ${COMPONENTS:+--component "$COMPONENTS"} --target wasm32-unknown-unknown
         rustup default stable
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
