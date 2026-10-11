@@ -1,0 +1,31 @@
+name: Set up Rust and Trunk
+description: Installs the Rust toolchain, restores the Cargo cache and installs a verified Trunk.
+
+inputs:
+  cache-name:
+    description: Keeps jobs that build different things from overwriting each other's cached target folder.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rust
+      shell: bash
+      run: |
+        rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+        rustup default stable
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: cargo-${{ inputs.cache-name }}-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+        restore-keys: cargo-${{ inputs.cache-name }}-${{ runner.os }}-
+    - name: Install Trunk
+      shell: bash
+      run: |
+        curl -fsSLo trunk.tar.gz https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz
+        echo "f2b4680cd239693a646a2795e4633c625328d7b2a044fbe749fa3a2fe9e7036b  trunk.tar.gz" | sha256sum --check
+        tar -xzf trunk.tar.gz -C /usr/local/bin
+        rm trunk.tar.gz
