@@ -5,7 +5,7 @@ edition.workspace = true
 
 [dependencies]
 sudoku-core.workspace = true
-rand = "0.9"
+rand = "0.10"
 clap = { version = "4", features = ["derive"] }
 rayon = "1.12.0"
 
