@@ -32,8 +32,10 @@ jobs:
           restore-keys: cargo-${{ runner.os }}-
       - name: Install Trunk
         run: |
-          curl -sSL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz \
-            | tar -xz -C /usr/local/bin
+          curl -fsSLo trunk.tar.gz https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz
+          echo "f2b4680cd239693a646a2795e4633c625328d7b2a044fbe749fa3a2fe9e7036b  trunk.tar.gz" | sha256sum --check
+          tar -xzf trunk.tar.gz -C /usr/local/bin
+          rm trunk.tar.gz
       - name: Build
         working-directory: crates/app
         run: trunk build --release
