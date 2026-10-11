@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { button, cell, emptyCellAndAnswer, enter, readBoard, wrongDigit } from "./sudoku";
+import { board, button, cell, emptyCellAndAnswer, enter, readBoard, wrongDigit } from "./sudoku";
 
 test("the game in progress survives closing and reopening the app", async ({ page }) => {
   await page.goto("/");
@@ -65,4 +65,21 @@ test("cancelling a hard reset keeps everything", async ({ page }) => {
   expect(await readBoard(page)).toEqual(before);
   await page.reload();
   expect(await readBoard(page)).toEqual(before);
+});
+
+test.describe("before the app loads", () => {
+  // Requests a service worker answers skip page.route, so the worker is kept out of the way.
+  test.use({ serviceWorkers: "block" });
+
+  test("the saved theme is applied", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByLabel("Dark").check();
+    await button(page, "Done").click();
+
+    await page.route("**/*.wasm", (route) => route.abort());
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(board(page)).toHaveCount(0);
+  });
 });

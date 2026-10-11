@@ -17,7 +17,7 @@
     <link data-trunk rel="copy-dir" href="icons" />
     <script>
       try {
-        document.documentElement.dataset.theme = JSON.parse(localStorage.getItem("settings")).theme;
+        document.documentElement.dataset.theme = JSON.parse(localStorage.getItem("sudoku-for-mom:settings")).theme;
       } catch {}
       if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
     </script>

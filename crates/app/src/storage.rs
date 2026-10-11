@@ -1,6 +1,9 @@
 //! Saves state in the browser's local storage. Storage can be unavailable
 //! (private browsing, blocked site data), so failures are ignored and the
 //! app falls back to defaults.
+//!
+//! Every app on a GitHub Pages account shares one origin and so one local
+//! storage, so keys are prefixed to keep this app's state apart from theirs.
 
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -11,12 +14,19 @@ pub const SETTINGS_KEY: &str = "settings";
 pub const PLAYED_KEY: &str = "played";
 pub const STATS_KEY: &str = "stats";
 
+/// index.html reads the saved theme before the app loads, so it repeats this prefix.
+const KEY_PREFIX: &str = "sudoku-for-mom:";
+
+fn prefixed(key: &str) -> String {
+    format!("{KEY_PREFIX}{key}")
+}
+
 fn local_storage() -> Option<web_sys::Storage> {
     web_sys::window()?.local_storage().ok()?
 }
 
 pub fn load<T: DeserializeOwned>(key: &str) -> Option<T> {
-    let json = local_storage()?.get_item(key).ok()??;
+    let json = local_storage()?.get_item(&prefixed(key)).ok()??;
     serde_json::from_str(&json).ok()
 }
 
@@ -24,7 +34,7 @@ pub fn save<T: Serialize>(key: &str, value: &T) {
     if let Some(storage) = local_storage()
         && let Ok(json) = serde_json::to_string(value)
     {
-        let _ = storage.set_item(key, &json);
+        let _ = storage.set_item(&prefixed(key), &json);
     }
 }
 
