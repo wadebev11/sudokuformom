@@ -40,6 +40,17 @@ fn a_wrong_number_is_a_mistake() {
 }
 
 #[test]
+fn a_number_is_fully_placed_once_it_shows_nine_times() {
+    let mut game = new_game();
+    let solution = grid(EASY_SOLUTION);
+    let nines: Vec<_> = (0..81).filter(|cell| solution.get(*cell) == 9).collect();
+    nines.iter().for_each(|cell| game.enter(*cell, 9));
+    assert!(game.is_fully_placed(9));
+    game.erase(nines[0]);
+    assert!(!game.is_fully_placed(9));
+}
+
+#[test]
 fn a_solved_puzzle_is_locked() {
     let mut game = new_game();
     fill_in_solution(&mut game);

@@ -230,7 +230,8 @@ header button,
   padding: 10px 4px;
 }
 
-.toolbar button:disabled {
+.toolbar button:disabled,
+.number-pad button:disabled {
   opacity: 0.4;
   cursor: default;
 }

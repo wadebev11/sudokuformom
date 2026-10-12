@@ -184,6 +184,14 @@ impl Game {
             || self.marks.pencil_marks.iter().any(|marks| *marks != 0)
     }
 
+    /// True once the number shows in nine cells, so there is nowhere left to put it.
+    pub fn is_fully_placed(&self, digit: Digit) -> bool {
+        (0..CELL_COUNT)
+            .filter(|cell| self.value(*cell) == Some(digit))
+            .count()
+            == 9
+    }
+
     pub fn is_mistake(&self, cell: Cell) -> bool {
         !self.marks.entries.is_empty(cell)
             && self.marks.entries.get(cell) != self.solution.get(cell)

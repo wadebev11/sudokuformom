@@ -16,8 +16,11 @@ pub fn NumberPad(
         game.update(|game| change(game));
         hint.set(None);
     };
+    let is_fully_placed = move |digit| game.with(|game| game.is_fully_placed(digit));
     let enter = move |digit| {
-        if let Some(cell) = selected.get() {
+        if let Some(cell) = selected.get()
+            && !is_fully_placed(digit)
+        {
             if pencil_mode.get() {
                 change_game(&|game| game.toggle_pencil_mark(cell, digit));
             } else {
@@ -78,7 +81,13 @@ pub fn NumberPad(
             </button>
         </div>
         <div class="number-pad" class:pencil=move || pencil_mode.get()>
-            {(1..=9).map(|digit| view! { <button on:click=move |_| enter(digit)>{digit}</button> }).collect_view()}
+            {(1..=9).map(|digit| {
+                view! {
+                    <button on:click=move |_| enter(digit) disabled=move || is_fully_placed(digit)>
+                        {digit}
+                    </button>
+                }
+            }).collect_view()}
         </div>
     }
 }
