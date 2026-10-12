@@ -1,6 +1,7 @@
 mod app;
 mod board;
 mod celebration;
+mod completion;
 mod format;
 mod hint_panel;
 mod modal;

@@ -116,3 +116,16 @@ test("clicking outside the hard reset confirmation goes back to settings", async
   await expect(page.getByRole("dialog", { name: "Hard reset" })).toBeHidden();
   await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
 });
+
+test("finishing a row animates each of its cells", async ({ page }) => {
+  await page.goto("/");
+  const grid = await readBoard(page);
+  const solution = solve(grid);
+  const row = Array.from({ length: 9 }, (_, index) => index);
+  for (const index of row) {
+    if (grid[index] === 0) await enter(page, index, solution[index]);
+  }
+  for (const index of row) {
+    await expect(cell(page, index)).toHaveClass(/\bcompleting-(even|odd)\b/);
+  }
+});

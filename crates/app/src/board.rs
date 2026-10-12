@@ -3,6 +3,7 @@ use sudoku_core::grid::{CELL_COUNT, DigitSet, column_of, digit_bit, row_of, sees
 use sudoku_core::hint::Hint;
 use sudoku_core::{Cell, Digit, Game};
 
+use crate::completion::{CELL_ANIMATION_MS, Completion};
 use crate::settings::Settings;
 
 /// Everything a cell shows from the game. Each cell watches its own copy, so
@@ -38,6 +39,7 @@ pub fn Board(
     game: RwSignal<Game>,
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
+    completion: RwSignal<Option<Completion>>,
     settings: RwSignal<Settings>,
 ) -> impl IntoView {
     let selected_value = Memo::new(move |_| {
@@ -61,7 +63,7 @@ pub fn Board(
         <div class="board" role="group" aria-label="Sudoku board">
             {(0..CELL_COUNT)
                 .map(|cell| {
-                    view! { <BoardCell cell game selected selected_value hinted show_mistakes /> }
+                    view! { <BoardCell cell game selected selected_value hinted completion show_mistakes /> }
                 })
                 .collect_view()}
         </div>
@@ -75,6 +77,7 @@ fn BoardCell(
     selected: RwSignal<Option<Cell>>,
     selected_value: Memo<Option<Digit>>,
     hinted: Memo<HintedCells>,
+    completion: RwSignal<Option<Completion>>,
     show_mistakes: Memo<bool>,
 ) -> impl IntoView {
     let contents = Memo::new(move |_| {
@@ -101,6 +104,16 @@ fn BoardCell(
             is_same_number: selected_value.is_some() && contents.value == selected_value,
         }
     });
+    // Alternating the animation's name between rounds restarts it on a cell finished twice in a row.
+    let completing = Memo::new(move |_| {
+        completion.with(|completion| {
+            completion.as_ref().and_then(|completion| {
+                completion
+                    .delay_ms(cell)
+                    .map(|delay_ms| (completion.round % 2 == 0, delay_ms))
+            })
+        })
+    });
     let edges = edge_classes(row_of(cell), column_of(cell), 8, 8);
     let class = move || {
         let highlight = highlight.get();
@@ -118,7 +131,22 @@ fn BoardCell(
                 class.push_str(name);
             }
         }
+        if let Some((is_even_round, _)) = completing.get() {
+            class.push_str(if is_even_round {
+                " completing-even"
+            } else {
+                " completing-odd"
+            });
+        }
         class
+    };
+    let style = move || {
+        completing
+            .get()
+            .map(|(_, delay_ms)| {
+                format!("animation-delay: {delay_ms}ms; animation-duration: {CELL_ANIMATION_MS}ms")
+            })
+            .unwrap_or_default()
     };
     let label = move || {
         let CellContents {
@@ -143,7 +171,7 @@ fn BoardCell(
     };
 
     view! {
-        <button class=class aria-label=label on:click=move |_| selected.set(Some(cell))>
+        <button class=class style=style aria-label=label on:click=move |_| selected.set(Some(cell))>
             {move || {
                 let CellContents {
                     value,

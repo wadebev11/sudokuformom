@@ -220,6 +220,44 @@ header button,
   background: var(--mistake-background);
 }
 
+.cell.completing-even,
+.cell.completing-odd {
+  position: relative;
+  z-index: 1;
+  animation-timing-function: ease-out;
+}
+
+.cell.completing-even {
+  animation-name: cell-completed-even;
+}
+
+.cell.completing-odd {
+  animation-name: cell-completed-odd;
+}
+
+@keyframes cell-completed-even {
+  40% {
+    transform: scale(1.15);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+}
+
+@keyframes cell-completed-odd {
+  40% {
+    transform: scale(1.15);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell.completing-even,
+  .cell.completing-odd {
+    animation-name: none;
+  }
+}
+
 .toolbar {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

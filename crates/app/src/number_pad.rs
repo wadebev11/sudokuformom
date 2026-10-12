@@ -3,18 +3,32 @@ use leptos::prelude::*;
 use sudoku_core::hint::Hint;
 use sudoku_core::{Cell, Digit, Game};
 
+use crate::completion::Completion;
+
 #[component]
 pub fn NumberPad(
     game: RwSignal<Game>,
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
+    completion: RwSignal<Option<Completion>>,
     solved: Memo<bool>,
     accepts_keys: Signal<bool>,
 ) -> impl IntoView {
     let pencil_mode = RwSignal::new(false);
     let change_game = move |change: &dyn Fn(&mut Game)| {
+        let solved_units_before = game.with_untracked(Game::solved_units);
         game.update(|game| change(game));
         hint.set(None);
+        let next = game.with_untracked(|game| {
+            Completion::after_move(
+                completion.get_untracked().as_ref(),
+                &solved_units_before,
+                game,
+            )
+        });
+        if next.is_some() {
+            completion.set(next);
+        }
     };
     let is_fully_placed = move |digit| game.with(|game| game.is_fully_placed(digit));
     let enter = move |digit| {

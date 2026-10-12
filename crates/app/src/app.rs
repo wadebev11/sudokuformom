@@ -8,6 +8,7 @@ use sudoku_core::{Cell, Difficulty, Game, PlayedPuzzles, PuzzleBank, Technique};
 
 use crate::board::Board;
 use crate::celebration::Celebration;
+use crate::completion::{BOARD_ANIMATION_MS, Completion};
 use crate::format::clock;
 use crate::hint_panel::HintPanel;
 use crate::new_game_menu::NewGameMenu;
@@ -56,8 +57,11 @@ pub fn App() -> impl IntoView {
     let selected = RwSignal::new(None::<Cell>);
     let hint = RwSignal::new(None::<Hint>);
     let dialog = RwSignal::new(Dialog::None);
+    let completion = RwSignal::new(None::<Completion>);
     let celebration_closed = RwSignal::new(false);
-    let celebration_open = Memo::new(move |_| solved.get() && !celebration_closed.get());
+    let celebration_waiting = RwSignal::new(false);
+    let celebration_open =
+        Memo::new(move |_| solved.get() && !celebration_closed.get() && !celebration_waiting.get());
 
     let on_screen = RwSignal::new(app_is_on_screen());
     // The clock is saved alongside each move and when the app is hidden, rather than every tick.
@@ -75,13 +79,19 @@ pub fn App() -> impl IntoView {
     });
     Effect::new(move || stats.with(|stats| storage::save(STATS_KEY, stats)));
 
-    // Records a solve only when it happens, not when an already solved game is reopened.
+    // Records a solve only when it happens, not when an already solved game is reopened,
+    // and holds the celebration back until the board has finished animating.
     Effect::new(move |was_solved: Option<bool>| {
         let is_solved = solved.get();
         if is_solved && was_solved == Some(false) {
             let difficulty = game.with_untracked(Game::difficulty);
             let seconds = elapsed_seconds.get_untracked();
             stats.update(|stats| stats.record_solve(difficulty, seconds));
+            celebration_waiting.set(true);
+            set_timeout(
+                move || celebration_waiting.set(false),
+                Duration::from_millis(BOARD_ANIMATION_MS.into()),
+            );
         }
         is_solved
     });
@@ -115,6 +125,7 @@ pub fn App() -> impl IntoView {
         elapsed_seconds.set(0);
         selected.set(None);
         hint.set(None);
+        completion.set(None);
         celebration_closed.set(false);
         dialog.set(Dialog::None);
     });
@@ -139,11 +150,12 @@ pub fn App() -> impl IntoView {
                 </span>
                 <button on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
             </div>
-            <Board game selected hint settings />
+            <Board game selected hint completion settings />
             <NumberPad
                 game
                 selected
                 hint
+                completion
                 solved
                 accepts_keys=Signal::derive(move || {
                     dialog.get() == Dialog::None && !celebration_open.get()
