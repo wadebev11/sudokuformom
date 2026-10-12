@@ -16,7 +16,7 @@ enum Pattern {
     AllAtOnce,
 }
 
-const PATTERNS: [Pattern; 5] = [
+const UNIT_PATTERNS: [Pattern; 5] = [
     Pattern::OneByOne,
     Pattern::Random,
     Pattern::CrissCross,
@@ -24,9 +24,17 @@ const PATTERNS: [Pattern; 5] = [
     Pattern::AllAtOnce,
 ];
 
+/// Flashing all 81 cells together is too abrupt for finishing the puzzle.
+const BOARD_PATTERNS: [Pattern; 4] = [
+    Pattern::OneByOne,
+    Pattern::Random,
+    Pattern::CrissCross,
+    Pattern::EveryOther,
+];
+
 impl Pattern {
-    fn pick() -> Self {
-        PATTERNS[random_below(PATTERNS.len())]
+    fn pick(patterns: &[Pattern]) -> Self {
+        patterns[random_below(patterns.len())]
     }
 
     /// Which beat each cell in a line of cells starts animating on.
@@ -80,12 +88,13 @@ impl Completion {
         solved_units_before: &[Unit],
         game: &Game,
     ) -> Option<Completion> {
-        let pattern = Pattern::pick();
         let mut delays_ms = [None; CELL_COUNT];
         if game.is_solved() {
             let all_cells: Vec<Cell> = (0..CELL_COUNT).collect();
+            let pattern = Pattern::pick(&BOARD_PATTERNS);
             add_delays(&mut delays_ms, &all_cells, pattern, BOARD_SPREAD_MS);
         } else {
+            let pattern = Pattern::pick(&UNIT_PATTERNS);
             game.solved_units()
                 .into_iter()
                 .filter(|unit| !solved_units_before.contains(unit))
