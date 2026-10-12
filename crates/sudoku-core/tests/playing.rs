@@ -3,6 +3,7 @@ mod common;
 use std::collections::BTreeMap;
 
 use common::{EASY_PUZZLE, EASY_SOLUTION, HARD_PUZZLE, grid};
+use sudoku_core::grid::{Unit, UnitKind};
 use sudoku_core::{Difficulty, Game, PuzzleBank};
 
 fn new_game() -> Game {
@@ -48,6 +49,26 @@ fn a_number_is_fully_placed_once_it_shows_nine_times() {
     assert!(game.is_fully_placed(9));
     game.erase(nines[0]);
     assert!(!game.is_fully_placed(9));
+}
+
+#[test]
+fn a_unit_is_solved_once_its_cells_hold_their_solution_numbers() {
+    let mut game = new_game();
+    let solution = grid(EASY_SOLUTION);
+    let first_row = Unit {
+        kind: UnitKind::Row,
+        index: 0,
+    };
+    let first_row_cells = first_row.cells();
+    let (last_cell, other_cells) = first_row_cells.split_last().unwrap();
+    other_cells
+        .iter()
+        .for_each(|cell| game.enter(*cell, solution.get(*cell)));
+    assert!(!game.solved_units().contains(&first_row));
+    game.enter(*last_cell, solution.get(*last_cell) % 9 + 1);
+    assert!(!game.solved_units().contains(&first_row));
+    game.enter(*last_cell, solution.get(*last_cell));
+    assert!(game.solved_units().contains(&first_row));
 }
 
 #[test]

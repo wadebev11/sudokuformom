@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::grid::{CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, digit_bit};
+use crate::grid::{CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, UNITS, Unit, digit_bit};
 use crate::hint::Hint;
 use crate::solver::solve;
 use crate::techniques::Difficulty;
@@ -198,6 +198,23 @@ impl Game {
     }
 
     pub fn is_solved(&self) -> bool {
-        (0..CELL_COUNT).all(|cell| self.value(cell) == Some(self.solution.get(cell)))
+        (0..CELL_COUNT).all(|cell| self.holds_solution(cell))
+    }
+
+    /// The Units whose nine cells all hold their solution numbers.
+    pub fn solved_units(&self) -> Vec<Unit> {
+        UNITS
+            .iter()
+            .filter(|unit| {
+                unit.cells()
+                    .into_iter()
+                    .all(|cell| self.holds_solution(cell))
+            })
+            .copied()
+            .collect()
+    }
+
+    fn holds_solution(&self, cell: Cell) -> bool {
+        self.value(cell) == Some(self.solution.get(cell))
     }
 }
