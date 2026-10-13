@@ -65,8 +65,10 @@ pub fn NumberPad(
         }
     });
     on_cleanup(move || key_listener.remove());
-    let show_or_apply_hint = move |_| match hint.get() {
+    let fills_notes = move || pencil_mode.get() && hint.with(Option::is_none);
+    let hint_button_action = move |_| match hint.get() {
         Some(shown) => change_game(&|game| game.apply_hint(&shown)),
+        None if pencil_mode.get() => change_game(&Game::fill_in_pencil_marks),
         None => hint.set(game.with(Game::hint)),
     };
 
@@ -88,10 +90,12 @@ pub fn NumberPad(
             <button on:click=move |_| erase()>"Erase"</button>
             <button
                 class:active=move || hint.with(Option::is_some)
-                on:click=show_or_apply_hint
-                disabled=move || solved.get()
+                on:click=hint_button_action
+                disabled=move || {
+                    solved.get() || (fills_notes() && !game.with(Game::can_fill_in_pencil_marks))
+                }
             >
-                "Hint"
+                {move || if fills_notes() { "Fill notes" } else { "Hint" }}
             </button>
         </div>
         <div class="number-pad" class:pencil=move || pencil_mode.get()>

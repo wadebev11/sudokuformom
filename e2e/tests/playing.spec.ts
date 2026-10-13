@@ -129,3 +129,19 @@ test("finishing a row animates each of its cells", async ({ page }) => {
     await expect(cell(page, index)).toHaveClass(/\bcompleting-(even|odd)\b/);
   }
 });
+
+test("in pencil mode the Hint button fills in notes for cells without any", async ({ page }) => {
+  await page.goto("/");
+  const { index } = await emptyCellAndAnswer(page);
+  await button(page, "Pencil").click();
+  await expect(button(page, "Hint")).toBeHidden();
+
+  await button(page, "Fill notes").click();
+  await expect(cell(page, index)).toHaveAccessibleName(/notes/);
+  await expect(button(page, "Fill notes")).toBeDisabled();
+
+  await button(page, "Undo").click();
+  await expect(cell(page, index)).toHaveAccessibleName(/, empty$/);
+  await button(page, "Pencil").click();
+  await expect(button(page, "Hint")).toBeVisible();
+});
