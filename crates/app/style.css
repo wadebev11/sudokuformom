@@ -345,12 +345,29 @@ header button.link {
 }
 
 .status-bar button {
-  margin-left: auto;
   border: none;
   border-radius: 10px;
   background: var(--button);
   padding: 10px 14px;
   font-size: 1rem;
+}
+
+.status-bar .pause {
+  display: flex;
+  padding: 12px 14px;
+}
+
+.status-bar .pause:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.status-bar .new-game {
+  margin-left: auto;
+}
+
+.overlay.paused {
+  background: var(--background);
 }
 
 .difficulty {

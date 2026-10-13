@@ -11,6 +11,7 @@ use crate::celebration::Celebration;
 use crate::completion::{BOARD_ANIMATION_MS, Completion};
 use crate::format::clock;
 use crate::hint_panel::HintPanel;
+use crate::modal::Modal;
 use crate::new_game_menu::NewGameMenu;
 use crate::number_pad::NumberPad;
 use crate::scenery::Scenery;
@@ -39,6 +40,7 @@ enum Dialog {
     Settings,
     Stats,
     Techniques(Technique),
+    Paused,
 }
 
 #[component]
@@ -110,6 +112,7 @@ pub fn App() -> impl IntoView {
 
     Effect::new(move || {
         if on_screen.get()
+            && dialog.get() != Dialog::Paused
             && !solved.get()
             && let Ok(ticker) = set_interval_with_handle(
                 move || *elapsed_seconds.write() += 1,
@@ -155,7 +158,18 @@ pub fn App() -> impl IntoView {
                 <span class="timer" aria-label="Time">
                     {move || clock(elapsed_seconds.get())}
                 </span>
-                <button on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
+                <button
+                    class="pause"
+                    aria-label="Pause"
+                    disabled=move || solved.get()
+                    on:click=move |_| dialog.set(Dialog::Paused)
+                >
+                    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                        <rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+                        <rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+                    </svg>
+                </button>
+                <button class="new-game" on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
             </div>
             <Board game selected hint completion settings />
             <NumberPad
@@ -174,6 +188,14 @@ pub fn App() -> impl IntoView {
                     dialog.set(Dialog::Techniques(technique))
                 })
             />
+            <Show when=move || dialog.get() == Dialog::Paused>
+                <Modal class="paused" on_close=close_dialog>
+                    <div class="dialog" role="dialog" aria-label="Paused">
+                        <h2>"Paused"</h2>
+                        <button class="primary" on:click=move |_| close_dialog.run(())>"Resume"</button>
+                    </div>
+                </Modal>
+            </Show>
             <Show when=move || celebration_open.get()>
                 <Celebration
                     game
