@@ -158,6 +158,17 @@ fn filling_in_pencil_marks_skips_cells_that_already_have_some() {
 }
 
 #[test]
+fn restarting_clears_the_player_s_work_but_keeps_the_puzzle() {
+    let mut game = new_game();
+    fill_in_solution(&mut game);
+    game.restart();
+    assert_eq!(game.board(), grid(EASY_PUZZLE));
+    assert!(!game.has_progress());
+    assert!(!game.can_undo());
+    assert!(!game.can_redo());
+}
+
+#[test]
 fn undo_and_redo_step_through_changes() {
     let mut game = new_game();
     game.enter(2, 4);

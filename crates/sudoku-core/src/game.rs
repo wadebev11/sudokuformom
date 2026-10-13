@@ -13,6 +13,15 @@ struct PlayerMarks {
     pencil_marks: [DigitSet; CELL_COUNT],
 }
 
+impl PlayerMarks {
+    fn empty() -> Self {
+        PlayerMarks {
+            entries: Grid::empty(),
+            pencil_marks: [0; CELL_COUNT],
+        }
+    }
+}
+
 /// Serde only derives arrays up to 32 long, so the 81 cells are saved as a list.
 mod pencil_mark_list {
     use serde::de::Error;
@@ -56,13 +65,17 @@ impl Game {
             difficulty,
             givens: puzzle,
             solution,
-            marks: PlayerMarks {
-                entries: Grid::empty(),
-                pencil_marks: [0; CELL_COUNT],
-            },
+            marks: PlayerMarks::empty(),
             undo_history: Vec::new(),
             redo_history: Vec::new(),
         }
+    }
+
+    /// Clears everything the player has entered, keeping the same puzzle.
+    pub fn restart(&mut self) {
+        self.marks = PlayerMarks::empty();
+        self.undo_history.clear();
+        self.redo_history.clear();
     }
 
     pub fn difficulty(&self) -> Difficulty {
