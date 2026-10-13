@@ -3,7 +3,7 @@ mod common;
 use std::collections::BTreeMap;
 
 use common::{EASY_PUZZLE, EASY_SOLUTION, HARD_PUZZLE, grid};
-use sudoku_core::grid::{Unit, UnitKind};
+use sudoku_core::grid::{Unit, UnitKind, digit_bit};
 use sudoku_core::{Difficulty, Game, PuzzleBank};
 
 fn new_game() -> Game {
@@ -136,6 +136,25 @@ fn entering_a_number_clears_it_from_pencil_marks_it_rules_out() {
     assert_eq!(marks(&game, 2), Vec::<u8>::new());
     assert_eq!(marks(&game, 3), Vec::<u8>::new());
     assert_eq!(marks(&game, 78), [4]);
+}
+
+#[test]
+fn filling_in_pencil_marks_skips_cells_that_already_have_some() {
+    let mut game = new_game();
+    let board = game.board();
+    let empty_cells: Vec<_> = (0..81).filter(|cell| board.is_empty(*cell)).collect();
+    let (marked_cell, other_cells) = empty_cells.split_first().unwrap();
+    game.toggle_pencil_mark(*marked_cell, 1);
+
+    game.fill_in_pencil_marks();
+
+    assert_eq!(game.pencil_marks(*marked_cell), digit_bit(1));
+    other_cells
+        .iter()
+        .for_each(|cell| assert_eq!(game.pencil_marks(*cell), board.candidates(*cell)));
+    assert!(!game.can_fill_in_pencil_marks());
+    game.undo();
+    assert_eq!(game.pencil_marks(other_cells[0]), 0);
 }
 
 #[test]

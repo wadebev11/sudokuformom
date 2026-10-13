@@ -132,6 +132,30 @@ impl Game {
         }
     }
 
+    /// True when some empty cell has no Pencil Marks yet, so filling them in would change something.
+    pub fn can_fill_in_pencil_marks(&self) -> bool {
+        !self.is_solved() && (0..CELL_COUNT).any(|cell| self.lacks_pencil_marks(cell))
+    }
+
+    /// Writes every Candidate into the empty cells that have no Pencil Marks,
+    /// leaving alone the cells where the player has already ruled numbers out.
+    pub fn fill_in_pencil_marks(&mut self) {
+        if self.can_fill_in_pencil_marks() {
+            self.record_for_undo();
+            let board = self.board();
+            let cells: Vec<Cell> = (0..CELL_COUNT)
+                .filter(|cell| self.lacks_pencil_marks(*cell))
+                .collect();
+            for cell in cells {
+                self.marks.pencil_marks[cell] = board.candidates(cell);
+            }
+        }
+    }
+
+    fn lacks_pencil_marks(&self, cell: Cell) -> bool {
+        self.value(cell).is_none() && self.pencil_marks(cell) == 0
+    }
+
     pub fn can_undo(&self) -> bool {
         !self.undo_history.is_empty() && !self.is_solved()
     }
