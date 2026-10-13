@@ -6,7 +6,9 @@ use crate::modal::Modal;
 #[component]
 pub fn NewGameMenu(
     progress_will_be_lost: Signal<bool>,
+    can_restart: Signal<bool>,
     on_choose: Callback<Difficulty>,
+    on_restart: Callback<()>,
     on_cancel: Callback<()>,
 ) -> impl IntoView {
     view! {
@@ -25,6 +27,9 @@ pub fn NewGameMenu(
                         }
                     })
                     .collect_view()}
+                <Show when=move || can_restart.get()>
+                    <button on:click=move |_| on_restart.run(())>"Restart this puzzle"</button>
+                </Show>
                 <button on:click=move |_| on_cancel.run(())>"Cancel"</button>
             </div>
         </Modal>

@@ -120,14 +120,21 @@ pub fn App() -> impl IntoView {
         }
     });
 
-    let start_new_game = Callback::new(move |difficulty| {
-        played.update(|played| game.set(new_game(difficulty, played)));
+    let begin_playing = move || {
         elapsed_seconds.set(0);
         selected.set(None);
         hint.set(None);
         completion.set(None);
         celebration_closed.set(false);
         dialog.set(Dialog::None);
+    };
+    let start_new_game = Callback::new(move |difficulty| {
+        played.update(|played| game.set(new_game(difficulty, played)));
+        begin_playing();
+    });
+    let restart_puzzle = Callback::new(move |_| {
+        game.update(Game::restart);
+        begin_playing();
     });
     let close_dialog = Callback::new(move |_| dialog.set(Dialog::None));
 
@@ -181,7 +188,9 @@ pub fn App() -> impl IntoView {
                     progress_will_be_lost=Signal::derive(move || {
                         game.with(Game::has_progress) && !solved.get()
                     })
+                    can_restart=Signal::derive(move || game.with(Game::has_progress))
                     on_choose=start_new_game
+                    on_restart=restart_puzzle
                     on_cancel=close_dialog
                 />
             </Show>

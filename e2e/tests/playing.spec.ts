@@ -35,6 +35,21 @@ test("a wrong number shows in red until it is erased", async ({ page }) => {
   await expect(cell(page, index)).not.toHaveClass(/\bmistake\b/);
 });
 
+test("restarting clears the puzzle and the timer but keeps the givens", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-01-01T10:00:00") });
+  await page.goto("/");
+  const givens = await readBoard(page);
+  const { index, answer } = await emptyCellAndAnswer(page);
+  await enter(page, index, answer);
+  await page.clock.runFor(5_000);
+  await expect(page.getByLabel("Time")).not.toHaveText("0:00");
+
+  await page.getByRole("button", { name: "New game" }).click();
+  await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Restart this puzzle" }).click();
+  expect(await readBoard(page)).toEqual(givens);
+  await expect(page.getByLabel("Time")).toHaveText("0:00");
+});
+
 test("choosing a difficulty starts a new puzzle at that level", async ({ page }) => {
   await page.goto("/");
   const { index, answer } = await emptyCellAndAnswer(page);
