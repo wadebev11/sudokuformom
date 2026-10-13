@@ -90,12 +90,13 @@ pub fn NumberPad(
             <button on:click=move |_| erase()>"Erase"</button>
             <button
                 class:active=move || hint.with(Option::is_some)
+                aria-label=move || if fills_notes() { "Fill notes" } else { "Hint" }
                 on:click=hint_button_action
                 disabled=move || {
                     solved.get() || (fills_notes() && !game.with(Game::can_fill_in_pencil_marks))
                 }
             >
-                {move || if fills_notes() { "Fill notes" } else { "Hint" }}
+                {move || if fills_notes() { "Fill" } else { "Hint" }}
             </button>
         </div>
         <div class="number-pad" class:pencil=move || pencil_mode.get()>
