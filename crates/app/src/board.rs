@@ -104,6 +104,9 @@ fn BoardCell(
             is_same_number: selected_value.is_some() && contents.value == selected_value,
         }
     });
+    let matching_pencil_marks = Memo::new(move |_| {
+        selected_value.get().map(digit_bit).unwrap_or_default() & contents.get().pencil_marks
+    });
     // Alternating the animation's name between rounds restarts it on a cell finished twice in a row.
     let completing = Memo::new(move |_| {
         completion.with(|completion| {
@@ -180,7 +183,9 @@ fn BoardCell(
                 } = contents.get();
                 match value {
                     Some(digit) => digit.to_string().into_any(),
-                    None => pencil_marks_view(pencil_marks, 0).into_any(),
+                    None => {
+                        pencil_marks_view(pencil_marks, 0, matching_pencil_marks.get()).into_any()
+                    }
                 }
             }}
         </button>
@@ -207,15 +212,24 @@ pub fn edge_classes(row: usize, column: usize, last_row: usize, last_column: usi
 /// Drawn whole when the marks change rather than as 9 reactive spans per cell,
 /// and left out entirely when a cell has no marks. Crossed out marks are
 /// only used to show Eliminations in technique examples.
-pub fn pencil_marks_view(pencil_marks: DigitSet, crossed_out: DigitSet) -> impl IntoView {
+pub fn pencil_marks_view(
+    pencil_marks: DigitSet,
+    crossed_out: DigitSet,
+    matching: DigitSet,
+) -> impl IntoView {
     (pencil_marks | crossed_out != 0).then(|| {
         view! {
             <span class="pencil-marks" aria-hidden="true">
                 {(1..=9)
                     .map(|digit| {
                         let is_crossed_out = crossed_out & digit_bit(digit) != 0;
+                        let is_matching = matching & digit_bit(digit) != 0;
                         let is_shown = is_crossed_out || pencil_marks & digit_bit(digit) != 0;
-                        view! { <span class:crossed-out=is_crossed_out>{is_shown.then_some(digit)}</span> }
+                        view! {
+                            <span class:crossed-out=is_crossed_out class:matching=is_matching>
+                                {is_shown.then_some(digit)}
+                            </span>
+                        }
                     })
                     .collect_view()}
             </span>

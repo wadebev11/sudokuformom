@@ -80,6 +80,23 @@ test("pencil marks can be written, cleared by a number, and undone", async ({ pa
   await expect(cell(page, index)).toHaveAccessibleName(/notes/);
 });
 
+test("selecting a number highlights the notes that match it", async ({ page }) => {
+  await page.goto("/");
+  const grid = await readBoard(page);
+  const givenIndex = grid.findIndex((digit) => digit !== 0);
+  const given = grid[givenIndex];
+  const emptyIndex = grid.indexOf(0);
+  await cell(page, emptyIndex).click();
+  await button(page, "Pencil").click();
+  await button(page, String(given)).click();
+  await button(page, String(wrongDigit(given))).click();
+
+  const matchingNotes = cell(page, emptyIndex).locator(".pencil-marks .matching");
+  await expect(matchingNotes).toHaveCount(0);
+  await cell(page, givenIndex).click();
+  await expect(matchingNotes).toHaveText(String(given));
+});
+
 test("number keys fill the selected cell and Backspace erases it", async ({ page }) => {
   await page.goto("/");
   const { index, answer } = await emptyCellAndAnswer(page);

@@ -323,6 +323,11 @@ header button:active {
   justify-content: center;
 }
 
+.pencil-marks .matching {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .pencil-marks .crossed-out {
   color: var(--mistake);
   text-decoration: line-through;

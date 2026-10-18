@@ -215,7 +215,7 @@ pub fn TechniqueExample(technique: Technique) -> impl IntoView {
                             Contents::Empty => ().into_any(),
                             Contents::Given(digit) | Contents::Placed(digit) => digit.into_any(),
                             Contents::Notes { kept, crossed_out } => {
-                                pencil_marks_view(kept, crossed_out).into_any()
+                                pencil_marks_view(kept, crossed_out, 0).into_any()
                             }
                         };
                         view! { <div class=class>{contents}</div> }
