@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::grid::{CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, UNITS, Unit, digit_bit};
 use crate::hint::Hint;
 use crate::solver::solve;
-use crate::techniques::Difficulty;
+use crate::techniques::{Difficulty, LogicBoard, naked_single};
 
 /// What the player has changed, so it can be undone.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -121,10 +121,27 @@ impl Game {
     pub fn enter(&mut self, cell: Cell, digit: Digit) {
         if self.is_editable(cell) && self.value(cell) != Some(digit) {
             self.record_for_undo();
-            self.marks.entries.set(cell, digit);
-            self.marks.pencil_marks[cell] = 0;
-            for peer in &PEERS[cell] {
-                self.marks.pencil_marks[*peer] &= !digit_bit(digit);
+            self.place(cell, digit);
+        }
+    }
+
+    fn place(&mut self, cell: Cell, digit: Digit) {
+        self.marks.entries.set(cell, digit);
+        self.marks.pencil_marks[cell] = 0;
+        for peer in &PEERS[cell] {
+            self.marks.pencil_marks[*peer] &= !digit_bit(digit);
+        }
+    }
+
+    /// Enters the number in every Naked Single until none are left. It isn't
+    /// recorded for undo, so undoing a move also undoes what it set off.
+    /// Easy puzzles are skipped because almost all of them would solve themselves.
+    pub fn auto_solve_naked_singles(&mut self) {
+        if self.difficulty != Difficulty::Easy {
+            while let Some((cell, digit)) =
+                naked_single(&LogicBoard::new(&self.board())).and_then(|step| step.placement)
+            {
+                self.place(cell, digit);
             }
         }
     }

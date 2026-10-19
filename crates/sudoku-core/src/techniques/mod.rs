@@ -7,6 +7,8 @@ mod wings;
 
 use serde::{Deserialize, Serialize};
 
+pub(crate) use singles::naked_single;
+
 use crate::grid::{CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, Unit, digit_bit};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

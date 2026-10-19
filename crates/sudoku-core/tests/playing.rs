@@ -2,8 +2,9 @@ mod common;
 
 use std::collections::BTreeMap;
 
-use common::{EASY_PUZZLE, EASY_SOLUTION, HARD_PUZZLE, grid};
+use common::{EASY_PUZZLE, EASY_SOLUTION, HARD_PUZZLE, MEDIUM_PUZZLE, grid};
 use sudoku_core::grid::{Unit, UnitKind, digit_bit};
+use sudoku_core::solver::solve;
 use sudoku_core::{Difficulty, Game, PuzzleBank};
 
 fn new_game() -> Game {
@@ -204,4 +205,41 @@ fn a_fresh_game_has_no_progress_to_lose() {
     assert!(!game.has_progress());
     game.toggle_pencil_mark(2, 4);
     assert!(game.has_progress());
+}
+
+fn has_naked_single(game: &Game) -> bool {
+    let board = game.board();
+    (0..81).any(|cell| board.is_empty(cell) && board.candidates(cell).count_ones() == 1)
+}
+
+#[test]
+fn auto_solving_fills_naked_singles_until_none_are_left() {
+    let mut game = Game::new(grid(MEDIUM_PUZZLE), Difficulty::Medium);
+    assert!(has_naked_single(&game));
+    game.auto_solve_naked_singles();
+    assert!(!has_naked_single(&game));
+    assert!((0..81).all(|cell| !game.is_mistake(cell)));
+}
+
+#[test]
+fn auto_solving_leaves_easy_puzzles_alone() {
+    let mut game = new_game();
+    game.auto_solve_naked_singles();
+    assert_eq!(game.board(), grid(EASY_PUZZLE));
+}
+
+#[test]
+fn undoing_a_move_also_undoes_what_auto_solving_filled_after_it() {
+    let puzzle = grid(MEDIUM_PUZZLE);
+    let solution = solve(&puzzle).unwrap();
+    let mut game = Game::new(puzzle, Difficulty::Medium);
+    game.auto_solve_naked_singles();
+    let before_move = game.board();
+    let cell = (0..81).find(|cell| before_move.is_empty(*cell)).unwrap();
+
+    game.enter(cell, solution.get(cell));
+    game.auto_solve_naked_singles();
+    game.undo();
+
+    assert_eq!(game.board(), before_move);
 }
