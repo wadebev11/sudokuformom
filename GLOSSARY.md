@@ -36,6 +36,10 @@ _Avoid_: Annotation
 A named logical deduction a person uses to place a number or rule one out, such as a hidden single or an X-Wing.
 _Avoid_: Strategy, rule
 
+**Naked Single**:
+An empty cell with only one Candidate left. It is decided by the numbers on the board, not by the player's Pencil Marks.
+_Avoid_: Lone single, sole candidate
+
 **Elimination**:
 Ruling a Candidate out of a cell by applying a Technique.
 _Avoid_: Crossing out
@@ -49,6 +53,10 @@ _Avoid_: Error, wrong answer
 **Difficulty**:
 One of four levels a puzzle belongs to: Easy, Medium, Hard, Expert. It is decided by the hardest Technique needed to solve the puzzle, not by how many Givens it has. Easy and Medium puzzles also start with a minimum number of Givens, so they don't feel sparse.
 _Avoid_: Level, mode
+
+**Auto-solve**:
+An optional setting, off by default, that enters the number in every Naked Single and keeps going until none are left. It never applies to Easy puzzles, which would almost always solve themselves before the first move. It is named for Naked Singles only, so it isn't mistaken for also solving hidden singles.
+_Avoid_: Auto-fill, auto-place
 
 **Hint**:
 The simplest Technique that makes progress on the current board, shown with the cells involved and an explanation. Applying it places a number or makes Eliminations from the Pencil Marks. If the board has a Mistake, the Hint points that out instead.

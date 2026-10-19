@@ -59,3 +59,22 @@ export async function emptyCellAndAnswer(page: Page): Promise<{ index: number; a
 }
 
 export const wrongDigit = (answer: number) => (answer % 9) + 1;
+
+/** Empty cells where every number but one is already in the cell's row, column or box. */
+export function nakedSingles(grid: number[]): number[] {
+  const candidateCount = (index: number) => {
+    const row = Math.floor(index / 9);
+    const column = index % 9;
+    const used = new Set<number>();
+    for (let other = 0; other < 81; other++) {
+      const otherRow = Math.floor(other / 9);
+      const otherColumn = other % 9;
+      const sameBox =
+        Math.floor(row / 3) === Math.floor(otherRow / 3) && Math.floor(column / 3) === Math.floor(otherColumn / 3);
+      if (otherRow === row || otherColumn === column || sameBox) used.add(grid[other]);
+    }
+    used.delete(0);
+    return 9 - used.size;
+  };
+  return grid.flatMap((digit, index) => (digit === 0 && candidateCount(index) === 1 ? [index] : []));
+}

@@ -55,6 +55,8 @@ pub fn App() -> impl IntoView {
     let elapsed_seconds = RwSignal::new(storage::load::<u64>(ELAPSED_KEY).unwrap_or_default());
     let solved = Memo::new(move |_| game.with(Game::is_solved));
     let settings = RwSignal::new(storage::load::<Settings>(SETTINGS_KEY).unwrap_or_default());
+    let auto_solves =
+        Memo::new(move |_| settings.with(|settings| settings.auto_solve_naked_singles));
     let stats = RwSignal::new(storage::load::<Stats>(STATS_KEY).unwrap_or_default());
     let selected = RwSignal::new(None::<Cell>);
     let hint = RwSignal::new(None::<Hint>);
@@ -80,6 +82,11 @@ pub fn App() -> impl IntoView {
         }
     });
     Effect::new(move || stats.with(|stats| storage::save(STATS_KEY, stats)));
+    Effect::new(move || {
+        if auto_solves.get() {
+            game.update(Game::auto_solve_naked_singles);
+        }
+    });
 
     // Records a solve only when it happens, not when an already solved game is reopened,
     // and holds the celebration back until the board has finished animating.
@@ -130,6 +137,9 @@ pub fn App() -> impl IntoView {
         completion.set(None);
         celebration_closed.set(false);
         dialog.set(Dialog::None);
+        if auto_solves.get_untracked() {
+            game.update(Game::auto_solve_naked_singles);
+        }
     };
     let start_new_game = Callback::new(move |difficulty| {
         played.update(|played| game.set(new_game(difficulty, played)));
@@ -178,6 +188,7 @@ pub fn App() -> impl IntoView {
                 hint
                 completion
                 solved
+                auto_solves
                 accepts_keys=Signal::derive(move || {
                     dialog.get() == Dialog::None && !celebration_open.get()
                 })

@@ -12,12 +12,18 @@ pub fn NumberPad(
     hint: RwSignal<Option<Hint>>,
     completion: RwSignal<Option<Completion>>,
     solved: Memo<bool>,
+    auto_solves: Memo<bool>,
     accepts_keys: Signal<bool>,
 ) -> impl IntoView {
     let pencil_mode = RwSignal::new(false);
     let change_game = move |change: &dyn Fn(&mut Game)| {
         let solved_units_before = game.with_untracked(Game::solved_units);
-        game.update(|game| change(game));
+        game.update(|game| {
+            change(game);
+            if auto_solves.get_untracked() {
+                game.auto_solve_naked_singles();
+            }
+        });
         hint.set(None);
         let next = game.with_untracked(|game| {
             Completion::after_move(

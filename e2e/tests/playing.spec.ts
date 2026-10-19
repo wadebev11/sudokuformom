@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { button, cell, emptyCellAndAnswer, enter, readBoard, solve, wrongDigit } from "./sudoku";
+import { button, cell, emptyCellAndAnswer, enter, nakedSingles, readBoard, solve, wrongDigit } from "./sudoku";
 
 test("the timer counts up while playing", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-01-01T10:00:00") });
@@ -176,4 +176,18 @@ test("in pencil mode the Hint button fills in notes for cells without any", asyn
   await expect(cell(page, index)).toHaveAccessibleName(/, empty$/);
   await button(page, "Pencil").click();
   await expect(button(page, "Hint")).toBeVisible();
+});
+
+test("auto-solving naked singles fills them on Medium but leaves Easy alone", async ({ page }) => {
+  await page.goto("/");
+  const easyBoard = await readBoard(page);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByLabel("Auto-solve naked singles (Not applied on Easy difficulty)").check();
+  await button(page, "Done").click();
+  expect(await readBoard(page)).toEqual(easyBoard);
+
+  await page.getByRole("button", { name: "New game" }).click();
+  await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Medium" }).click();
+  await expect(page.getByText("Medium", { exact: true })).toBeVisible();
+  expect(nakedSingles(await readBoard(page))).toEqual([]);
 });

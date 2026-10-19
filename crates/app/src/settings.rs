@@ -38,6 +38,7 @@ impl Theme {
 #[serde(default)]
 pub struct Settings {
     pub show_mistakes: bool,
+    pub auto_solve_naked_singles: bool,
     pub theme: Theme,
 }
 
@@ -45,6 +46,7 @@ impl Default for Settings {
     fn default() -> Self {
         Settings {
             show_mistakes: true,
+            auto_solve_naked_singles: false,
             theme: Theme::default(),
         }
     }
@@ -104,6 +106,18 @@ fn SettingsOptions(
                     }
                 />
                 "Show mistakes in red"
+            </label>
+            <label class="setting">
+                <input
+                    type="checkbox"
+                    prop:checked=move || settings.with(|settings| settings.auto_solve_naked_singles)
+                    on:change=move |event| {
+                        settings.update(|settings| {
+                            settings.auto_solve_naked_singles = event_target_checked(&event)
+                        })
+                    }
+                />
+                "Auto-solve naked singles (Not applied on Easy difficulty)"
             </label>
             <fieldset class="setting-group">
                 <legend>"Appearance"</legend>
