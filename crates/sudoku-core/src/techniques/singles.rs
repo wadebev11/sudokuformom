@@ -27,16 +27,24 @@ pub(super) fn hidden_single(board: &LogicBoard) -> Option<Step> {
 pub(crate) fn naked_single(board: &LogicBoard) -> Option<Step> {
     board.empty_cells().find_map(|cell| {
         let candidates: Vec<_> = digits_in(board.candidates(cell)).collect();
+        let ruled_out_by_board_alone = board.candidates(cell) == board.grid().candidates(cell);
         match candidates.as_slice() {
             [digit] => Some(Step {
                 technique: Technique::NakedSingle,
                 placement: Some((cell, *digit)),
                 eliminations: Vec::new(),
                 cells: vec![cell],
-                explanation: format!(
-                    "The only number that fits in {} is {digit}. Every other number is already in its row, column or box.",
-                    cell_name(cell)
-                ),
+                explanation: if ruled_out_by_board_alone {
+                    format!(
+                        "The only number that fits in {} is {digit}. Every other number is already in its row, column or box.",
+                        cell_name(cell)
+                    )
+                } else {
+                    format!(
+                        "The only number left for {} is {digit}. Every other number is already in its row, column or box, or was ruled out by an earlier hint.",
+                        cell_name(cell)
+                    )
+                },
             }),
             _ => None,
         }

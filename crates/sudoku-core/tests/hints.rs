@@ -104,3 +104,17 @@ fn a_step_names_its_technique_but_a_mistake_does_not() {
     game.enter(2, 1);
     assert_eq!(game.hint().unwrap().technique(), None);
 }
+
+#[test]
+fn a_naked_single_that_needs_an_earlier_hint_says_so() {
+    let mut game = Game::new(
+        grid("196275384005183692823496050000007020000500000651924873060749000509600200010052069"),
+        Difficulty::Hard,
+    );
+    let explanations: Vec<String> = (0..3).map(|_| game.hint().unwrap().explanation()).collect();
+    assert!(explanations[1].starts_with("The three highlighted cells in row 4"));
+    assert_eq!(
+        explanations[2],
+        "The only number left for row 4, column 1 is 9. Every other number is already in its row, column or box, or was ruled out by an earlier hint."
+    );
+}
