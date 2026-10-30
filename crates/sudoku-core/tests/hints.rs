@@ -75,6 +75,29 @@ fn applying_an_elimination_hint_fills_in_pencil_marks_without_the_eliminated_can
 }
 
 #[test]
+fn incomplete_pencil_marks_dont_skip_an_elimination_hint() {
+    let mut game = Game::new(grid(EXPERT_PUZZLE), Difficulty::Expert);
+    let mut elimination_hint = game.clone().hint().unwrap();
+    while elimination_hint.places_a_number() {
+        game.apply_hint(&elimination_hint);
+        elimination_hint = game.clone().hint().unwrap();
+    }
+    let Hint::Step(step) = &elimination_hint else {
+        panic!("expected a step")
+    };
+
+    for (cell, _) in &step.eliminations {
+        let unrelated_digit = (1..=9)
+            .find(|digit| !step.eliminations.contains(&(*cell, *digit)))
+            .unwrap();
+        if game.pencil_marks(*cell) == 0 {
+            game.toggle_pencil_mark(*cell, unrelated_digit);
+        }
+    }
+    assert_eq!(game.hint(), Some(elimination_hint));
+}
+
+#[test]
 fn a_step_names_its_technique_but_a_mistake_does_not() {
     let mut game = Game::new(grid(EASY_PUZZLE), Difficulty::Easy);
     assert!(game.hint().unwrap().technique().is_some());

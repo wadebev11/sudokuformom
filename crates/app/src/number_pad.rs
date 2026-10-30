@@ -75,7 +75,7 @@ pub fn NumberPad(
     let hint_button_action = move |_| match hint.get() {
         Some(shown) => change_game(&|game| game.apply_hint(&shown)),
         None if pencil_mode.get() => change_game(&Game::fill_in_pencil_marks),
-        None => hint.set(game.with(Game::hint)),
+        None => hint.set(game.try_update(Game::hint).flatten()),
     };
 
     view! {

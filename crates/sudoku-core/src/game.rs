@@ -52,6 +52,9 @@ pub struct Game {
     givens: Grid,
     solution: Grid,
     marks: PlayerMarks,
+    /// Eliminations from Hints already shown, so the next Hint moves past them.
+    #[serde(default)]
+    pub(crate) shown_eliminations: Vec<(Cell, Digit)>,
     #[serde(skip)]
     undo_history: Vec<PlayerMarks>,
     #[serde(skip)]
@@ -66,6 +69,7 @@ impl Game {
             givens: puzzle,
             solution,
             marks: PlayerMarks::empty(),
+            shown_eliminations: Vec::new(),
             undo_history: Vec::new(),
             redo_history: Vec::new(),
         }
@@ -74,6 +78,7 @@ impl Game {
     /// Clears everything the player has entered, keeping the same puzzle.
     pub fn restart(&mut self) {
         self.marks = PlayerMarks::empty();
+        self.shown_eliminations.clear();
         self.undo_history.clear();
         self.redo_history.clear();
     }

@@ -1,5 +1,5 @@
 use crate::game::Game;
-use crate::grid::{CELL_COUNT, Cell, cell_name, digit_bit};
+use crate::grid::{CELL_COUNT, Cell, cell_name};
 use crate::techniques::{LogicBoard, Step, Technique};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -58,13 +58,17 @@ impl Hint {
 
 impl Game {
     /// Finds the simplest next step from the numbers on the board, ignoring
-    /// Pencil Marks as evidence. Steps that only remove Candidates the player
-    /// has already crossed out are skipped, so repeated Hints keep moving forward.
-    pub fn hint(&self) -> Option<Hint> {
-        match (0..CELL_COUNT).find(|cell| self.is_mistake(*cell)) {
+    /// Pencil Marks as evidence. Steps that only remove Candidates an earlier
+    /// Hint already showed are skipped, so repeated Hints keep moving forward.
+    pub fn hint(&mut self) -> Option<Hint> {
+        let hint = match (0..CELL_COUNT).find(|cell| self.is_mistake(*cell)) {
             Some(cell) => Some(Hint::Mistake(cell)),
             None => self.next_unseen_step().map(Hint::Step),
+        };
+        if let Some(Hint::Step(step)) = &hint {
+            self.shown_eliminations.extend(&step.eliminations);
         }
+        hint
     }
 
     fn next_unseen_step(&self) -> Option<Step> {
@@ -73,7 +77,7 @@ impl Game {
         while found.is_none()
             && let Some(step) = board.next_step()
         {
-            if self.already_reflects(&step) {
+            if self.was_shown(&step) {
                 board.apply(&step);
             } else {
                 found = Some(step);
@@ -82,11 +86,11 @@ impl Game {
         found
     }
 
-    fn already_reflects(&self, step: &Step) -> bool {
+    fn was_shown(&self, step: &Step) -> bool {
         step.placement.is_none()
-            && step.eliminations.iter().all(|(cell, digit)| {
-                let marks = self.pencil_marks(*cell);
-                marks != 0 && marks & digit_bit(*digit) == 0
-            })
+            && step
+                .eliminations
+                .iter()
+                .all(|elimination| self.shown_eliminations.contains(elimination))
     }
 }
