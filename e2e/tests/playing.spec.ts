@@ -133,7 +133,7 @@ test("clicking outside a dialog closes it, clicking inside does not", async ({ p
   for (const name of ["Stats", "Settings", "New game"]) {
     await page.getByRole("button", { name }).click();
     const dialog = page.getByRole("dialog", { name });
-    await dialog.getByRole("heading").click();
+    await dialog.getByRole("heading", { name, exact: true }).click();
     await expect(dialog).toBeVisible();
     await clickBackdrop();
     await expect(dialog).toBeHidden();
@@ -182,7 +182,7 @@ test("auto-solving naked singles fills them on Medium but leaves Easy alone", as
   await page.goto("/");
   const easyBoard = await readBoard(page);
   await page.getByRole("button", { name: "Settings" }).click();
-  await page.getByLabel("Auto-solve naked singles (Not applied on Easy difficulty)").check();
+  await page.getByLabel("Auto-solve naked singles").check();
   await button(page, "Done").click();
   expect(await readBoard(page)).toEqual(easyBoard);
 

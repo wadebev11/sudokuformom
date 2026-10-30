@@ -61,7 +61,7 @@ fn is_touch_device() -> bool {
 }
 
 #[component]
-pub fn SendProblemReportButton(
+pub fn ProblemReportSection(
     game: RwSignal<Game>,
     settings: RwSignal<Settings>,
     hint: RwSignal<Option<Hint>>,
@@ -99,5 +99,13 @@ pub fn SendProblemReportButton(
         }
     };
 
-    (shares || copies).then(|| view! { <button on:click=send>{label}</button> })
+    (shares || copies).then(|| {
+        view! {
+            <section class="setting-group">
+                <h3>"Something look wrong?"</h3>
+                <p class="setting-note">"Send this game so Wade can take a look."</p>
+                <button on:click=send>{label}</button>
+            </section>
+        }
+    })
 }

@@ -4,7 +4,7 @@ use sudoku_core::Game;
 use sudoku_core::hint::Hint;
 
 use crate::modal::Modal;
-use crate::problem_report::SendProblemReportButton;
+use crate::problem_report::ProblemReportSection;
 use crate::storage;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -105,30 +105,36 @@ fn SettingsOptions(
     on_close: Callback<()>,
 ) -> impl IntoView {
     view! {
-        <div class="dialog" role="dialog" aria-label="Settings">
+        <div class="dialog settings" role="dialog" aria-label="Settings">
             <h2>"Settings"</h2>
-            <label class="setting">
-                <input
-                    type="checkbox"
-                    prop:checked=move || settings.with(|settings| settings.show_mistakes)
-                    on:change=move |event| {
-                        settings.update(|settings| settings.show_mistakes = event_target_checked(&event))
-                    }
-                />
-                "Show mistakes in red"
-            </label>
-            <label class="setting">
-                <input
-                    type="checkbox"
-                    prop:checked=move || settings.with(|settings| settings.auto_solve_naked_singles)
-                    on:change=move |event| {
-                        settings.update(|settings| {
-                            settings.auto_solve_naked_singles = event_target_checked(&event)
-                        })
-                    }
-                />
-                "Auto-solve naked singles (Not applied on Easy difficulty)"
-            </label>
+            <fieldset class="setting-group">
+                <legend>"Gameplay"</legend>
+                <label class="setting">
+                    <input
+                        type="checkbox"
+                        prop:checked=move || settings.with(|settings| settings.show_mistakes)
+                        on:change=move |event| {
+                            settings.update(|settings| settings.show_mistakes = event_target_checked(&event))
+                        }
+                    />
+                    "Show mistakes in red"
+                </label>
+                <label class="setting">
+                    <input
+                        type="checkbox"
+                        prop:checked=move || settings.with(|settings| settings.auto_solve_naked_singles)
+                        on:change=move |event| {
+                            settings.update(|settings| {
+                                settings.auto_solve_naked_singles = event_target_checked(&event)
+                            })
+                        }
+                    />
+                    <span>
+                        "Auto-solve naked singles"
+                        <small class="setting-note">"Not applied on Easy puzzles"</small>
+                    </span>
+                </label>
+            </fieldset>
             <fieldset class="setting-group">
                 <legend>"Appearance"</legend>
                 {Theme::ALL
@@ -147,9 +153,14 @@ fn SettingsOptions(
                     })
                     .collect_view()}
             </fieldset>
-            <SendProblemReportButton game settings hint />
-            <button class="danger" on:click=move |_| confirming_reset.set(true)>"Hard reset"</button>
+            <ProblemReportSection game settings hint />
             <button class="primary" on:click=move |_| on_close.run(())>"Done"</button>
+            <section class="setting-group danger-zone">
+                <p class="setting-note">"Erases your puzzle, stats, and settings."</p>
+                <button class="danger-quiet" on:click=move |_| confirming_reset.set(true)>
+                    "Hard reset"
+                </button>
+            </section>
         </div>
     }
 }
