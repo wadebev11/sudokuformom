@@ -228,7 +228,7 @@ pub fn App() -> impl IntoView {
                 />
             </Show>
             <Show when=move || dialog.get() == Dialog::Settings>
-                <SettingsMenu settings on_close=close_dialog />
+                <SettingsMenu settings game hint on_close=close_dialog />
             </Show>
             <Show when=move || dialog.get() == Dialog::Stats>
                 <StatsMenu stats on_close=close_dialog />

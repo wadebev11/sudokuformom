@@ -1,7 +1,10 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
+use sudoku_core::Game;
+use sudoku_core::hint::Hint;
 
 use crate::modal::Modal;
+use crate::problem_report::SendProblemReportButton;
 use crate::storage;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -53,7 +56,12 @@ impl Default for Settings {
 }
 
 #[component]
-pub fn SettingsMenu(settings: RwSignal<Settings>, on_close: Callback<()>) -> impl IntoView {
+pub fn SettingsMenu(
+    settings: RwSignal<Settings>,
+    game: RwSignal<Game>,
+    hint: RwSignal<Option<Hint>>,
+    on_close: Callback<()>,
+) -> impl IntoView {
     let confirming_reset = RwSignal::new(false);
 
     let erase_everything = move |_| {
@@ -73,7 +81,7 @@ pub fn SettingsMenu(settings: RwSignal<Settings>, on_close: Callback<()>) -> imp
         <Modal on_close=close_from_backdrop>
             <Show
                 when=move || confirming_reset.get()
-                fallback=move || view! { <SettingsOptions settings confirming_reset on_close /> }
+                fallback=move || view! { <SettingsOptions settings game hint confirming_reset on_close /> }
             >
                 <div class="dialog" role="dialog" aria-label="Hard reset">
                     <h2>"Hard reset"</h2>
@@ -91,6 +99,8 @@ pub fn SettingsMenu(settings: RwSignal<Settings>, on_close: Callback<()>) -> imp
 #[component]
 fn SettingsOptions(
     settings: RwSignal<Settings>,
+    game: RwSignal<Game>,
+    hint: RwSignal<Option<Hint>>,
     confirming_reset: RwSignal<bool>,
     on_close: Callback<()>,
 ) -> impl IntoView {
@@ -137,6 +147,7 @@ fn SettingsOptions(
                     })
                     .collect_view()}
             </fieldset>
+            <SendProblemReportButton game settings hint />
             <button class="danger" on:click=move |_| confirming_reset.set(true)>"Hard reset"</button>
             <button class="primary" on:click=move |_| on_close.run(())>"Done"</button>
         </div>

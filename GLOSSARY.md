@@ -61,3 +61,7 @@ _Avoid_: Auto-fill, auto-place
 **Hint**:
 The simplest Technique that makes progress on the current board, shown with the cells involved and an explanation. Applying it places a number or makes Eliminations from the Pencil Marks. If the board has a Mistake, the Hint points that out instead.
 _Avoid_: Tip
+
+**Problem Report**:
+A copy of the game in progress, the settings and any Hint showing, which the player sends to Wade when something looks wrong. She describes what happened in her own words alongside it.
+_Avoid_: Bug report, feedback

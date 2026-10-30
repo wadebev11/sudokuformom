@@ -17,7 +17,7 @@ pub const STATS_KEY: &str = "stats";
 /// index.html reads the saved theme before the app loads, so it repeats this prefix.
 const KEY_PREFIX: &str = "sudoku-for-mom:";
 
-fn prefixed(key: &str) -> String {
+pub fn prefixed(key: &str) -> String {
     format!("{KEY_PREFIX}{key}")
 }
 

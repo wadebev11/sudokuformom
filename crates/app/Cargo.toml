@@ -10,7 +10,8 @@ leptos = { version = "0.8", features = ["csr"] }
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
 serde.workspace = true
-web-sys = { version = "0.3", features = ["Document", "Element", "Location", "Storage", "Window"] }
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Clipboard", "Document", "Element", "Location", "MediaQueryList", "Navigator", "ShareData", "Storage", "Window"] }
 
 [lints]
 workspace = true

@@ -1586,6 +1586,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sudoku-core",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 
