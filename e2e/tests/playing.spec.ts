@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { button, cell, emptyCellAndAnswer, enter, nakedSingles, readBoard, solve, wrongDigit } from "./sudoku";
+import { autoSolved, board, button, cell, emptyCellAndAnswer, enter, nakedSingles, readBoard, solve, wrongDigit } from "./sudoku";
 
 test("the timer counts up while playing", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-01-01T10:00:00") });
@@ -190,4 +190,30 @@ test("auto-solving naked singles fills them on Medium but leaves Easy alone", as
   await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Medium" }).click();
   await expect(page.getByText("Medium", { exact: true })).toBeVisible();
   expect(nakedSingles(await readBoard(page))).toEqual([]);
+});
+
+test("numbers auto-solving fills ink in, and undo or redo does not replay them", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByLabel("Auto-solve naked singles").check();
+  await button(page, "Done").click();
+  await page.getByRole("button", { name: "New game" }).click();
+  await page.getByRole("dialog", { name: "New game" }).getByRole("button", { name: "Medium" }).click();
+  await expect(page.getByText("Medium", { exact: true })).toBeVisible();
+  const inking = board(page).locator(".ink-in-even, .ink-in-odd");
+
+  // A move that sets off Auto-solve without finishing the puzzle, which would stop undo.
+  const grid = await readBoard(page);
+  const solution = solve(grid);
+  const index = grid.findIndex((digit, index) => {
+    const entered = grid.map((other, otherIndex) => (otherIndex === index ? solution[index] : other));
+    const after = autoSolved(entered, solution);
+    return digit === 0 && after.includes(0) && after.some((other, otherIndex) => other !== entered[otherIndex]);
+  });
+  await enter(page, index, solution[index]);
+  await expect(inking).not.toHaveCount(0);
+  await button(page, "Undo").click();
+  await expect(inking).toHaveCount(0);
+  await button(page, "Redo").click();
+  await expect(inking).toHaveCount(0);
 });

@@ -1,6 +1,8 @@
 use sudoku_core::grid::{CELL_COUNT, Unit};
 use sudoku_core::{Cell, Game};
 
+use crate::ink_in::InkIn;
+
 pub const CELL_ANIMATION_MS: u32 = 600;
 const UNIT_SPREAD_MS: u32 = 400;
 const BOARD_SPREAD_MS: u32 = 1200;
@@ -83,23 +85,34 @@ impl Completion {
     }
 
     /// The whole board when the move solved the puzzle, otherwise each newly solved Unit.
+    /// Each waits for the cells Auto-solve filled in it to finish inking in.
     pub fn after_move(
         previous: Option<&Completion>,
         solved_units_before: &[Unit],
         game: &Game,
+        ink_in: &InkIn,
     ) -> Option<Completion> {
         let mut delays_ms = [None; CELL_COUNT];
         if game.is_solved() {
             let all_cells: Vec<Cell> = (0..CELL_COUNT).collect();
             let pattern = Pattern::pick(&BOARD_PATTERNS);
-            add_delays(&mut delays_ms, &all_cells, pattern, BOARD_SPREAD_MS);
+            let start_ms = ink_in.all_finished_ms();
+            add_delays(
+                &mut delays_ms,
+                &all_cells,
+                pattern,
+                start_ms,
+                BOARD_SPREAD_MS,
+            );
         } else {
             let pattern = Pattern::pick(&UNIT_PATTERNS);
             game.solved_units()
                 .into_iter()
                 .filter(|unit| !solved_units_before.contains(unit))
                 .for_each(|unit| {
-                    add_delays(&mut delays_ms, &unit.cells(), pattern, UNIT_SPREAD_MS)
+                    let cells = unit.cells();
+                    let start_ms = ink_in.finished_ms(&cells);
+                    add_delays(&mut delays_ms, &cells, pattern, start_ms, UNIT_SPREAD_MS)
                 });
         }
         delays_ms.iter().any(Option::is_some).then(|| Completion {
@@ -114,6 +127,7 @@ fn add_delays(
     delays_ms: &mut [Option<u32>; CELL_COUNT],
     cells: &[Cell],
     pattern: Pattern,
+    start_ms: u32,
     spread_ms: u32,
 ) {
     let beats = pattern.beats(cells.len());
@@ -123,7 +137,7 @@ fn add_delays(
         .unwrap_or_default()
         .min(MAX_BEAT_MS);
     for (cell, beat) in cells.iter().zip(beats) {
-        let delay_ms = beat as u32 * beat_ms;
+        let delay_ms = start_ms + beat as u32 * beat_ms;
         let current = &mut delays_ms[*cell];
         *current = Some(current.map_or(delay_ms, |current| current.min(delay_ms)));
     }

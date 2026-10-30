@@ -4,6 +4,7 @@ use sudoku_core::hint::Hint;
 use sudoku_core::{Cell, Digit, Game};
 
 use crate::completion::Completion;
+use crate::ink_in::InkIn;
 
 #[component]
 pub fn NumberPad(
@@ -11,6 +12,7 @@ pub fn NumberPad(
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
     completion: RwSignal<Option<Completion>>,
+    ink_in: RwSignal<InkIn>,
     solved: Memo<bool>,
     auto_solves: Memo<bool>,
     accepts_keys: Signal<bool>,
@@ -18,19 +20,27 @@ pub fn NumberPad(
     let pencil_mode = RwSignal::new(false);
     let change_game = move |change: &dyn Fn(&mut Game)| {
         let solved_units_before = game.with_untracked(Game::solved_units);
-        game.update(|game| {
-            change(game);
-            if auto_solves.get_untracked() {
-                game.auto_solve_naked_singles();
-            }
-        });
+        let waves = game
+            .try_update(|game| {
+                change(game);
+                if auto_solves.get_untracked() {
+                    game.auto_solve_naked_singles()
+                } else {
+                    Vec::new()
+                }
+            })
+            .unwrap_or_default();
         hint.set(None);
+        ink_in.update(|ink_in| *ink_in = InkIn::after_auto_solve(ink_in, &waves, 0));
         let next = game.with_untracked(|game| {
-            Completion::after_move(
-                completion.get_untracked().as_ref(),
-                &solved_units_before,
-                game,
-            )
+            ink_in.with_untracked(|ink_in| {
+                Completion::after_move(
+                    completion.get_untracked().as_ref(),
+                    &solved_units_before,
+                    game,
+                    ink_in,
+                )
+            })
         });
         if next.is_some() {
             completion.set(next);

@@ -4,6 +4,7 @@ mod celebration;
 mod completion;
 mod format;
 mod hint_panel;
+mod ink_in;
 mod modal;
 mod new_game_menu;
 mod number_pad;

@@ -24,7 +24,7 @@ pub(super) fn hidden_single(board: &LogicBoard) -> Option<Step> {
 }
 
 /// A cell where every number but one is already used by its row, column or box.
-pub(crate) fn naked_single(board: &LogicBoard) -> Option<Step> {
+pub(super) fn naked_single(board: &LogicBoard) -> Option<Step> {
     board.empty_cells().find_map(|cell| {
         let candidates: Vec<_> = digits_in(board.candidates(cell)).collect();
         let ruled_out_by_board_alone = board.candidates(cell) == board.grid().candidates(cell);

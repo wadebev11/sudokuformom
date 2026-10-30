@@ -251,9 +251,40 @@ header button,
   }
 }
 
+/* Alternating the animation's name between rounds restarts it on a cell filled twice in a row. */
+.digit.ink-in-even,
+.digit.ink-in-odd {
+  animation-timing-function: ease-out;
+  animation-fill-mode: backwards;
+}
+
+.digit.ink-in-even {
+  animation-name: ink-in-even;
+}
+
+.digit.ink-in-odd {
+  animation-name: ink-in-odd;
+}
+
+@keyframes ink-in-even {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes ink-in-odd {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cell.completing-even,
-  .cell.completing-odd {
+  .cell.completing-odd,
+  .digit.ink-in-even,
+  .digit.ink-in-odd {
     animation-name: none;
   }
 }

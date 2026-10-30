@@ -11,6 +11,7 @@ use crate::celebration::Celebration;
 use crate::completion::{BOARD_ANIMATION_MS, Completion};
 use crate::format::clock;
 use crate::hint_panel::HintPanel;
+use crate::ink_in::{InkIn, SETTLE_MS};
 use crate::modal::Modal;
 use crate::new_game_menu::NewGameMenu;
 use crate::number_pad::NumberPad;
@@ -62,6 +63,7 @@ pub fn App() -> impl IntoView {
     let hint = RwSignal::new(None::<Hint>);
     let dialog = RwSignal::new(Dialog::None);
     let completion = RwSignal::new(None::<Completion>);
+    let ink_in = RwSignal::new(InkIn::default());
     let celebration_closed = RwSignal::new(false);
     let celebration_waiting = RwSignal::new(false);
     let celebration_open =
@@ -82,9 +84,16 @@ pub fn App() -> impl IntoView {
         }
     });
     Effect::new(move || stats.with(|stats| storage::save(STATS_KEY, stats)));
+    // Waits for the Settings dialog to close, so turning Auto-solve on fills the board where she can see it.
     Effect::new(move || {
-        if auto_solves.get() {
-            game.update(Game::auto_solve_naked_singles);
+        if auto_solves.get() && dialog.get() == Dialog::None {
+            let waves = game
+                .try_update(Game::auto_solve_naked_singles)
+                .unwrap_or_default();
+            if !waves.is_empty() {
+                ink_in
+                    .update(|ink_in| *ink_in = InkIn::after_auto_solve(ink_in, &waves, SETTLE_MS));
+            }
         }
     });
 
@@ -97,9 +106,10 @@ pub fn App() -> impl IntoView {
             let seconds = elapsed_seconds.get_untracked();
             stats.update(|stats| stats.record_solve(difficulty, seconds));
             celebration_waiting.set(true);
+            let waiting_ms = ink_in.with_untracked(InkIn::all_finished_ms) + BOARD_ANIMATION_MS;
             set_timeout(
                 move || celebration_waiting.set(false),
-                Duration::from_millis(BOARD_ANIMATION_MS.into()),
+                Duration::from_millis(waiting_ms.into()),
             );
         }
         is_solved
@@ -137,9 +147,13 @@ pub fn App() -> impl IntoView {
         completion.set(None);
         celebration_closed.set(false);
         dialog.set(Dialog::None);
-        if auto_solves.get_untracked() {
-            game.update(Game::auto_solve_naked_singles);
-        }
+        let waves = if auto_solves.get_untracked() {
+            game.try_update(Game::auto_solve_naked_singles)
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+        ink_in.update(|ink_in| *ink_in = InkIn::after_auto_solve(ink_in, &waves, SETTLE_MS));
     };
     let start_new_game = Callback::new(move |difficulty| {
         played.update(|played| game.set(new_game(difficulty, played)));
@@ -181,12 +195,13 @@ pub fn App() -> impl IntoView {
                 </button>
                 <button class="new-game" on:click=move |_| dialog.set(Dialog::NewGame)>"New game"</button>
             </div>
-            <Board game selected hint completion settings />
+            <Board game selected hint completion ink_in settings />
             <NumberPad
                 game
                 selected
                 hint
                 completion
+                ink_in
                 solved
                 auto_solves
                 accepts_keys=Signal::derive(move || {

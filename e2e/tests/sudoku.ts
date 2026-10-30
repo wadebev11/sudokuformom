@@ -78,3 +78,12 @@ export function nakedSingles(grid: number[]): number[] {
   };
   return grid.flatMap((digit, index) => (digit === 0 && candidateCount(index) === 1 ? [index] : []));
 }
+
+/** The board after Auto-solve fills every Naked Single until none are left. */
+export function autoSolved(grid: number[], solution: number[]): number[] {
+  const solved = [...grid];
+  for (let singles = nakedSingles(solved); singles.length > 0; singles = nakedSingles(solved)) {
+    for (const index of singles) solved[index] = solution[index];
+  }
+  return solved;
+}

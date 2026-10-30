@@ -4,6 +4,7 @@ use sudoku_core::hint::Hint;
 use sudoku_core::{Cell, Digit, Game};
 
 use crate::completion::{CELL_ANIMATION_MS, Completion};
+use crate::ink_in::{INK_IN_MS, InkIn};
 use crate::settings::Settings;
 
 /// Everything a cell shows from the game. Each cell watches its own copy, so
@@ -40,6 +41,7 @@ pub fn Board(
     selected: RwSignal<Option<Cell>>,
     hint: RwSignal<Option<Hint>>,
     completion: RwSignal<Option<Completion>>,
+    ink_in: RwSignal<InkIn>,
     settings: RwSignal<Settings>,
 ) -> impl IntoView {
     let selected_value = Memo::new(move |_| {
@@ -63,7 +65,7 @@ pub fn Board(
         <div class="board" role="group" aria-label="Sudoku board">
             {(0..CELL_COUNT)
                 .map(|cell| {
-                    view! { <BoardCell cell game selected selected_value hinted completion show_mistakes /> }
+                    view! { <BoardCell cell game selected selected_value hinted completion ink_in show_mistakes /> }
                 })
                 .collect_view()}
         </div>
@@ -78,6 +80,7 @@ fn BoardCell(
     selected_value: Memo<Option<Digit>>,
     hinted: Memo<HintedCells>,
     completion: RwSignal<Option<Completion>>,
+    ink_in: RwSignal<InkIn>,
     show_mistakes: Memo<bool>,
 ) -> impl IntoView {
     let contents = Memo::new(move |_| {
@@ -117,6 +120,26 @@ fn BoardCell(
             })
         })
     });
+    let inking = Memo::new(move |_| {
+        ink_in.with(|ink_in| {
+            ink_in
+                .delay_ms(cell)
+                .map(|delay_ms| (ink_in.round % 2 == 0, delay_ms))
+        })
+    });
+    let digit_class = move || match inking.get() {
+        Some((true, _)) => "digit ink-in-even",
+        Some((false, _)) => "digit ink-in-odd",
+        None => "digit",
+    };
+    let digit_style = move || {
+        inking
+            .get()
+            .map(|(_, delay_ms)| {
+                format!("animation-delay: {delay_ms}ms; animation-duration: {INK_IN_MS}ms")
+            })
+            .unwrap_or_default()
+    };
     let edges = edge_classes(row_of(cell), column_of(cell), 8, 8);
     let class = move || {
         let highlight = highlight.get();
@@ -182,7 +205,9 @@ fn BoardCell(
                     ..
                 } = contents.get();
                 match value {
-                    Some(digit) => digit.to_string().into_any(),
+                    Some(digit) => {
+                        view! { <span class=digit_class style=digit_style>{digit}</span> }.into_any()
+                    }
                     None => {
                         pencil_marks_view(pencil_marks, 0, matching_pencil_marks.get()).into_any()
                     }

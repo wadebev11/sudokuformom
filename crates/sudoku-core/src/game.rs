@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::grid::{CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, UNITS, Unit, digit_bit};
+use crate::grid::{
+    CELL_COUNT, Cell, Digit, DigitSet, Grid, PEERS, UNITS, Unit, digit_bit, digits_in,
+};
 use crate::hint::Hint;
 use crate::solver::solve;
-use crate::techniques::{Difficulty, LogicBoard, naked_single};
+use crate::techniques::Difficulty;
 
 /// What the player has changed, so it can be undone.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -141,14 +143,40 @@ impl Game {
     /// Enters the number in every Naked Single until none are left. It isn't
     /// recorded for undo, so undoing a move also undoes what it set off.
     /// Easy puzzles are skipped because almost all of them would solve themselves.
-    pub fn auto_solve_naked_singles(&mut self) {
+    ///
+    /// Returns the cells filled in waves: the Naked Singles on the board to start
+    /// with, then the ones those created, and so on.
+    pub fn auto_solve_naked_singles(&mut self) -> Vec<Vec<Cell>> {
+        let mut waves = Vec::new();
         if self.difficulty != Difficulty::Easy {
-            while let Some((cell, digit)) =
-                naked_single(&LogicBoard::new(&self.board())).and_then(|step| step.placement)
-            {
-                self.place(cell, digit);
+            let mut singles = self.naked_singles();
+            while !singles.is_empty() {
+                let mut wave = Vec::new();
+                for (cell, digit) in singles {
+                    // A Mistake can leave two Naked Singles in a Unit wanting the same number.
+                    if self.board().candidates(cell) == digit_bit(digit) {
+                        self.place(cell, digit);
+                        wave.push(cell);
+                    }
+                }
+                waves.push(wave);
+                singles = self.naked_singles();
             }
         }
+        waves
+    }
+
+    fn naked_singles(&self) -> Vec<(Cell, Digit)> {
+        let board = self.board();
+        (0..CELL_COUNT)
+            .filter(|cell| board.is_empty(*cell))
+            .filter_map(
+                |cell| match digits_in(board.candidates(cell)).collect::<Vec<_>>()[..] {
+                    [digit] => Some((cell, digit)),
+                    _ => None,
+                },
+            )
+            .collect()
     }
 
     pub fn erase(&mut self, cell: Cell) {

@@ -222,6 +222,26 @@ fn auto_solving_fills_naked_singles_until_none_are_left() {
 }
 
 #[test]
+fn auto_solving_reports_each_wave_of_naked_singles_it_filled() {
+    let puzzle = grid(MEDIUM_PUZZLE);
+    let mut game = Game::new(puzzle, Difficulty::Medium);
+    let starting_singles: Vec<usize> = (0..81)
+        .filter(|cell| puzzle.is_empty(*cell) && puzzle.candidates(*cell).count_ones() == 1)
+        .collect();
+
+    let waves = game.auto_solve_naked_singles();
+
+    assert_eq!(waves[0], starting_singles);
+    assert!(waves.len() > 1);
+    let filled: Vec<usize> = (0..81)
+        .filter(|cell| puzzle.is_empty(*cell) && game.value(*cell).is_some())
+        .collect();
+    let mut waved: Vec<usize> = waves.concat();
+    waved.sort();
+    assert_eq!(waved, filled);
+}
+
+#[test]
 fn auto_solving_leaves_easy_puzzles_alone() {
     let mut game = new_game();
     game.auto_solve_naked_singles();
